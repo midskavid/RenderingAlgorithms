@@ -2,3 +2,5 @@
 a.out
 RenderScene
 Resources/*
+Source/*.o
+.vscode/*
