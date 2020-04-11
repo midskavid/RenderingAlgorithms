@@ -52,8 +52,9 @@ class Bounds2;
 template <typename T>
 class Bounds3;
 class Transform;
-class PixelColor;
+class RGBColor;
 class Shape;
 class Film;
-
+class LightSource;
+class Camera;
 #endif
