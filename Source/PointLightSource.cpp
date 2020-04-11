@@ -1,7 +1,6 @@
 #include "LightSource.h"
 #include "RenderScene.h"
 
-// TODO : [mkaviday]
 bool PointLightSource::Unoccluded(Interaction& itr) const {
     auto pos = itr.GetPosition();
     auto direction = Normalize(mPosition-pos);
