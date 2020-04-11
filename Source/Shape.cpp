@@ -10,11 +10,12 @@ RGBColor Shape::GetColor(Interaction& itrPoint) {
             Vector3f eyeDir = itrPoint.GetOutDirection();
             Vector3f lightDir = lt->GetDirection(itrPoint.GetPosition());
             Vector3f half = Normalize(eyeDir+lightDir);
-            RGBColor lamb = mDiffuse*std::max(Dot(itrPoint.GetNormal(),eyeDir),Float(0.0));
-            RGBColor phong = mSpecular*pow(Dot(itrPoint.GetNormal(),half), mShininess);
+            Float NDotL = std::max(Dot(itrPoint.GetNormal(), lightDir),Float(0.));
+            RGBColor lamb = mDiffuse*NDotL*lt->GetColor();
+            Float NDotH = std::max(Dot(itrPoint.GetNormal(), half),Float(0.));
+            RGBColor phong = lt->GetColor()*mSpecular*pow(NDotH, mShininess);
             //TODO : [mkaviday] check attenuation
-            //color = color + lt->GetAttenuation(itrPoint.GetPosition())*(lt->GetColor()*(lamb + phong));
-            color = color + lt->GetColor()*(lamb + phong);
+            color = color + (lamb+phong)*lt->GetAttenuation(itrPoint.GetPosition());
         }
     }
 

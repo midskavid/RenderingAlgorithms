@@ -26,7 +26,7 @@ Interaction Sphere::Intersect(const Ray& ray) const {
     Point3f position = transRay.o+t*transRay.d;
     position = mObjectToWorld(position);
     Vector3f normal = GetNormal(position);
-    return Interaction(position,normal,Vector3f(),(Shape*)this);    
+    return Interaction(position,normal,-ray.d,(Shape*)this);    
 }
 
 Vector3f Sphere::GetNormal(Point3f pt) const {

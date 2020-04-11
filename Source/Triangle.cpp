@@ -13,7 +13,7 @@ Interaction Triangle::Intersect(const Ray& ray) const {
         ((Dot(Cross((mV3-mV2),(position-mV2)), mN)) >=0) &&
         ((Dot(Cross((mV1-mV3),(position-mV3)), mN)) >=0))
     {
-            return Interaction(position, mN, Vector3f(), (Shape*)this);
+            return Interaction(position, mN, -ray.d, (Shape*)this);
     }
     else{
         return Interaction();
