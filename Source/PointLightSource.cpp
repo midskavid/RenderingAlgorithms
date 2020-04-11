@@ -1,14 +1,33 @@
 #include "LightSource.h"
+#include "RenderScene.h"
 
 // TODO : [mkaviday]
 bool PointLightSource::Unoccluded(Interaction& itr) const {
-    return false;
+    auto pos = itr.GetPosition();
+    auto direction = Normalize(mPosition-pos);
+
+    Ray r = Ray(pos+(float)0.3*direction, direction);
+    Float its = renderer->mScene->GetClosestDistance(r);
+
+    if(its<0.0) {
+        return true;
+    }
+
+    Float dist = (pos-mPosition).Length();
+    if(its<dist) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 Vector3f PointLightSource::GetDirection(Point3f pt) const {
-    return Vector3f();
+    return Normalize(mPosition-pt);
 }
 
-RGBColor PointLightSource::GetAttenuation() const {
-    return RGBColor();
+Float PointLightSource::GetAttenuation(Point3f pos) const {
+    auto dist = Distance(mPosition,pos);
+    Float atten = mAttenuation[0]+mAttenuation[1]*dist+mAttenuation[2]*pow(dist,2);
+    return 1/atten;
 }

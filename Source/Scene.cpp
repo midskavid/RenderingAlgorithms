@@ -30,9 +30,22 @@ RGBColor Scene::GetColor(Ray& ray, int depth) {
         Vector3f reflected = Normalize(ray.d + 2*comp);
         // TODO:[mkaviday] offset ray..
         Ray refl(closestIntr.GetPosition()+0.01*reflected, reflected);
-        return hit->GetColor(closestIntr, mLight) + hit->GetSpecular()*GetColor(refl, depth-1);
+        return hit->GetColor(closestIntr) + hit->GetSpecular()*GetColor(refl, depth-1);
 
     }
-
     return color;
+}
+
+Float Scene::GetClosestDistance(Ray& ray) {
+    Float closestDistance = -1;
+    for (const auto& shape:mShape) {
+        auto its = shape->Intersect(ray);
+        if (its.IsHit()) {    
+            Float dist = Distance(ray.o,its.GetPosition());
+            if (closestDistance< 0 || dist < closestDistance) {
+                closestDistance = dist;
+            }
+        }
+    }
+    return closestDistance;
 }

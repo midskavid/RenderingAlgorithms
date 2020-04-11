@@ -4,3 +4,4 @@ RenderScene
 Resources/*
 Source/*.o
 .vscode/*
+RenderedScene.png

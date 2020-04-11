@@ -15,11 +15,12 @@ private:
 private:
     int mWidth, mHeight;
     int mMaxDepth;
-    Scene* mScene;
     Camera* mCamera;
     Film* mFilm;
     std::string mSceneFileName;
     std::string mOutFileName;
+public:
+    Scene* mScene;
 };
 
 #endif

@@ -8,6 +8,8 @@
 #include "Triangle.h"
 #include "Sphere.h"
 
+RenderScene* renderer;
+
 void RightMultiply(std::stack<Transform>& stk, Transform t2) {
     auto& tp = stk.top();
     tp = tp*t2;
@@ -187,6 +189,8 @@ void RenderScene::ReadFile() {
             }
             std::getline (in, str); 
         }
+        // Init Scene..
+        mScene = new Scene(lights, shapes);
     }
     else {
         std::cerr << "Unable to Open Input Data File " << mSceneFileName << "\n"; 
@@ -203,6 +207,7 @@ void RenderScene::Render(std::string outFileName) {
             mFilm->AddColor(pt, col);
         }
     }
+    mFilm->WriteToImage(outFileName);
 }
 
 int main(int argc, char*argv[]) {
@@ -210,9 +215,10 @@ int main(int argc, char*argv[]) {
         std::cout<<"Please enter filename.. Exiting\n"; 
         return 0;
     }
-    RenderScene renderer(argv[1]);
-    renderer.ReadFile();
+    renderer = new RenderScene(argv[1]);
+    renderer->ReadFile();
     std::cout<<"ParsedFile..\n";
-    renderer.Render("ThisIsTheEnd.png");
+    renderer->Render("RenderedScene.png");
+    
     return 0;
 }

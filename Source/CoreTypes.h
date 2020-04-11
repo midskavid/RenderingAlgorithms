@@ -57,4 +57,6 @@ class Shape;
 class Film;
 class LightSource;
 class Camera;
+class RenderScene;
+extern RenderScene* renderer;
 #endif
