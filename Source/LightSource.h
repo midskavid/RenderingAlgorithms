@@ -17,7 +17,6 @@ public:
     LightSource(RGBColor color_) : mColor(color_), mLightType(LightType::kDefault) { }
     LightSource(RGBColor color_, LightType ltty_) : mColor(color_), mLightType(ltty_) { }
     RGBColor GetColor() const {return mColor;}
-    virtual void GetPos() const = 0;
     virtual bool Unoccluded(Interaction& itr) const = 0;
     virtual Vector3f GetDirection(Point3f pt) const = 0;
     virtual RGBColor GetAttenuation() const = 0;
@@ -32,7 +31,6 @@ public:
     bool Unoccluded(Interaction& itr) const override;
     Vector3f GetDirection(Point3f pt) const override;
     RGBColor GetAttenuation() const override;
-    void GetPos() const override;
 private:
     Point3f mPosition;
     std::array<Float,3> mAttenuation;
@@ -40,9 +38,13 @@ private:
 
 class DirectionalLightSource : public LightSource {
 public:
+    DirectionalLightSource(RGBColor col_, Vector3f dir, std::array<Float,3>& att_) : LightSource(col_, LightType::kDirectionalLight), mDirection(dir), mAttenuation(att_) { }
     bool Unoccluded(Interaction& itr) const override;
     Vector3f GetDirection(Point3f pt) const override;
     RGBColor GetAttenuation() const override;
+private:
+    std::array<Float,3> mAttenuation;
+    Vector3f mDirection;    
 };
 
 #endif

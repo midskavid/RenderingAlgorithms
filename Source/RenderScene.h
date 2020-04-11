@@ -8,10 +8,9 @@
 class RenderScene {
 public:
     RenderScene(std::string fileName) : mSceneFileName(fileName), mOutFileName("output.png"), mMaxDepth(4) { }
-    void Init();
+    void ReadFile();
     void Render(std::string outFileName);
 private:
-    void ReadFile();
     bool ReadVals(std::stringstream &s, const int numvals, Float* values);
 private:
     int mWidth, mHeight;

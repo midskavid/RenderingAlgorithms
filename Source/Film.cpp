@@ -1,5 +1,5 @@
 #include "Film.h"
-#include "FreeImage/FreeImage.h"
+#include "../FreeImage/FreeImage.h"
 
 void Film::AddColor(Point2i pt, RGBColor color) {
     mFilm[pt[0]][pt[1]] = mFilm[pt[0]][pt[1]] + color;

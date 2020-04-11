@@ -10,7 +10,7 @@ public:
                 mV2(vert2),
                 mV3(vert3),
                 Shape(trans, diffuse, ambient, specular, emission, shininess) { }
-    Bounds3f ObjectBounds() const override;
+    //Bounds3f ObjectBounds() const override;
     Interaction Intersect(const Ray& ray) const override;
 private:
     Point3f mV1;

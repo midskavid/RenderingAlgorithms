@@ -13,13 +13,13 @@ public:
     Float GetBlue() const {return mB;}
 
     RGBColor operator +(const RGBColor& col) {
-        return RGBColor(mR+col.GetRed(), mG+col.GetGreen, mB+col.GetBlue);
+        return RGBColor(mR+col.GetRed(), mG+col.GetGreen(), mB+col.GetBlue());
     }
     RGBColor operator -(const RGBColor& col) {
-        return RGBColor(mR-col.GetRed(), mG-col.GetGreen, mB-col.GetBlue);
+        return RGBColor(mR-col.GetRed(), mG-col.GetGreen(), mB-col.GetBlue());
     }
     RGBColor operator *(const RGBColor& col) {
-        return RGBColor(mR*col.GetRed(), mG*col.GetGreen, mB*col.GetBlue);
+        return RGBColor(mR*col.GetRed(), mG*col.GetGreen(), mB*col.GetBlue());
     }
     RGBColor operator *(Float s_) {
         return RGBColor(mR*s_, mG*s_, mB*s_);

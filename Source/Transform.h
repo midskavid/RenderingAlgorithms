@@ -123,7 +123,20 @@ class Transform {
     inline Vector3<T> operator()(const Vector3<T> &v) const;
     template <typename T>
     inline Normal3<T> operator()(const Normal3<T> &) const;
-    inline Ray operator()(const Ray &r) const;
+    inline Ray operator()(const Ray &r) const {
+        Vector3f oError;
+        Point3f o = (*this)(r.o, &oError);
+        Vector3f d = (*this)(r.d);
+        // Offset ray origin to edge of error bounds and compute _tMax_
+        Float lengthSquared = d.LengthSquared();
+        Float tMax = r.tMax;
+        if (lengthSquared > 0) {
+            Float dt = Dot(Abs(d), oError) / lengthSquared;
+            o += d * dt;
+            tMax -= dt;
+        }
+        return Ray(o, d, tMax, r.time);
+    }
     Bounds3f operator()(const Bounds3f &b) const;
     Transform operator*(const Transform &t2) const;
     bool SwapsHandedness() const;
@@ -139,12 +152,6 @@ class Transform {
     template <typename T>
     inline Vector3<T> operator()(const Vector3<T> &v, const Vector3<T> &vError,
                                  Vector3<T> *vTransError) const;
-    inline Ray operator()(const Ray &r, Vector3f *oError,
-                          Vector3f *dError) const;
-    inline Ray operator()(const Ray &r, const Vector3f &oErrorIn,
-                          const Vector3f &dErrorIn, Vector3f *oErrorOut,
-                          Vector3f *dErrorOut) const;
-
     friend std::ostream &operator<<(std::ostream &os, const Transform &t) {
         os << "t=" << t.m << ", inv=" << t.mInv;
         return os;
@@ -199,20 +206,20 @@ inline Normal3<T> Transform::operator()(const Normal3<T> &n) const {
                       mInv.m[0][2] * x + mInv.m[1][2] * y + mInv.m[2][2] * z);
 }
 
-inline Ray Transform::operator()(const Ray &r) const {
-    Vector3f oError;
-    Point3f o = (*this)(r.o, &oError);
-    Vector3f d = (*this)(r.d);
-    // Offset ray origin to edge of error bounds and compute _tMax_
-    Float lengthSquared = d.LengthSquared();
-    Float tMax = r.tMax;
-    if (lengthSquared > 0) {
-        Float dt = Dot(Abs(d), oError) / lengthSquared;
-        o += d * dt;
-        tMax -= dt;
-    }
-    return Ray(o, d, tMax, r.time);
-}
+// inline Ray Transform::operator()(const Ray &r) const {
+//     Vector3f oError;
+//     Point3f o = (*this)(r.o, &oError);
+//     Vector3f d = (*this)(r.d);
+//     // Offset ray origin to edge of error bounds and compute _tMax_
+//     Float lengthSquared = d.LengthSquared();
+//     Float tMax = r.tMax;
+//     if (lengthSquared > 0) {
+//         Float dt = Dot(Abs(d), oError) / lengthSquared;
+//         o += d * dt;
+//         tMax -= dt;
+//     }
+//     return Ray(o, d, tMax, r.time);
+// }
 
 
 template <typename T>
@@ -318,35 +325,6 @@ inline Vector3<T> Transform::operator()(const Vector3<T> &v,
     return Vector3<T>(m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z,
                       m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z,
                       m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
-}
-
-inline Ray Transform::operator()(const Ray &r, Vector3f *oError,
-                                 Vector3f *dError) const {
-    Point3f o = (*this)(r.o, oError);
-    Vector3f d = (*this)(r.d, dError);
-    Float tMax = r.tMax;
-    Float lengthSquared = d.LengthSquared();
-    if (lengthSquared > 0) {
-        Float dt = Dot(Abs(d), *oError) / lengthSquared;
-        o += d * dt;
-        //        tMax -= dt;
-    }
-    return Ray(o, d, tMax, r.time);
-}
-
-inline Ray Transform::operator()(const Ray &r, const Vector3f &oErrorIn,
-                                 const Vector3f &dErrorIn, Vector3f *oErrorOut,
-                                 Vector3f *dErrorOut) const {
-    Point3f o = (*this)(r.o, oErrorIn, oErrorOut);
-    Vector3f d = (*this)(r.d, dErrorIn, dErrorOut);
-    Float tMax = r.tMax;
-    Float lengthSquared = d.LengthSquared();
-    if (lengthSquared > 0) {
-        Float dt = Dot(Abs(d), *oErrorOut) / lengthSquared;
-        o += d * dt;
-        //        tMax -= dt;
-    }
-    return Ray(o, d, tMax, r.time);
 }
 
 #endif  

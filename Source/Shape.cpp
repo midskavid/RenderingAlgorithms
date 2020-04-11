@@ -8,7 +8,7 @@ RGBColor Shape::GetColor(Interaction& itrPoint, std::vector<LightSource*>& light
     for (const auto& lt:lights) {
         if (lt->Unoccluded(itrPoint)) {
             Vector3f eyeDir = itrPoint.GetOutDirection();
-            Vector3f lightDir = lt->GetDirection(itrPoint.GetPosition);
+            Vector3f lightDir = lt->GetDirection(itrPoint.GetPosition());
             Vector3f half = Normalize(eyeDir+lightDir);
             RGBColor lamb = mDiffuse*std::max(Dot(itrPoint.GetNormal(),eyeDir),Float(0.0));
             RGBColor phong = mSpecular*pow(Dot(itrPoint.GetNormal(),half), mShininess);

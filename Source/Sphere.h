@@ -9,7 +9,7 @@ public:
             mCenter(cen),
             mRadius(radius),
             Shape(trans, diffuse, ambient, specular, emission, shininess) { }
-    Bounds3f ObjectBounds() const override;
+    //Bounds3f ObjectBounds() const override;
     Interaction Intersect(const Ray& ray) const override;
 private:
     Float mRadius;

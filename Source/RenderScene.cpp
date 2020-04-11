@@ -13,10 +13,6 @@ void RightMultiply(std::stack<Transform>& stk, Transform t2) {
     tp = tp*t2;
 }
 
-void RenderScene::Init() { 
-    
-}
-
 bool RenderScene::ReadVals(std::stringstream &s, const int numvals, Float* values)
 {
     for (int i = 0; i < numvals; i++) {
@@ -68,12 +64,20 @@ void RenderScene::ReadFile() {
                         Point3f pos {values[0], values[1], values[2]};
                         pos = transfstack.top()(pos);
                         RGBColor col {values[3], values[4], values[5]};
-                        PointLightSource* light = new PointLightSource(col, pos, attenuation);
+                        LightSource* light = new PointLightSource(col, pos, attenuation);
                         lights.emplace_back(light);
                     }
                 }
                 else if (cmd == "directional") {
-                    // TODO : [mkaviday] Complete this
+                    validInput = ReadVals(s, 6, values); // Position/color for lts.
+                    if (validInput) {
+                        Vector3f dir {values[0], values[1], values[2]};
+                        dir = Normalize(dir);
+                        dir = transfstack.top()(dir);
+                        RGBColor col {values[3], values[4], values[5]};
+                        LightSource* light = new DirectionalLightSource(col, dir, attenuation);
+                        lights.emplace_back(light);
+                    }
                 }
                 else if (cmd == "ambient") {
                     validInput = ReadVals(s, 3, values); // colors 
@@ -201,7 +205,14 @@ void RenderScene::Render(std::string outFileName) {
     }
 }
 
-int main() {
-
+int main(int argc, char*argv[]) {
+    if (argc<2) {
+        std::cout<<"Please enter filename.. Exiting\n"; 
+        return 0;
+    }
+    RenderScene renderer(argv[1]);
+    renderer.ReadFile();
+    std::cout<<"ParsedFile..\n";
+    renderer.Render("ThisIsTheEnd.png");
     return 0;
 }
