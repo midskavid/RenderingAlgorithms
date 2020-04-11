@@ -32,7 +32,6 @@ protected:
     RGBColor mSpecular;
     RGBColor mEmission;
     Float mShininess;
-private:
     const Transform mObjectToWorld;
 };
 
