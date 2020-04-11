@@ -1,4 +1,5 @@
 CC = g++ -std=c++11
+CFLAGS = -O3
 INCFLAGS = -I"./FreeImage/" -I"./Source/"
 LDFLAGS = -L"./FreeImage/" -lfreeimage
 
