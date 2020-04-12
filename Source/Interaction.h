@@ -18,7 +18,7 @@ public:
     Vector3f GetOutDirection() const {return mWo;}
 private:
     Point3f mPos;
-    Vector3f mNormal;
+    Vector3f mNormal; //TODO : [mkaviday] change this to Normal3f
     Shape* mShape; 
     Vector3f mWo;
     bool mHit;

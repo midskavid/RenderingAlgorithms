@@ -2,9 +2,12 @@
 
 Interaction Sphere::Intersect(const Ray& ray) const {
     Ray transRay = mWorldToObject(ray);
-    Float a = Dot(transRay.d,transRay.d);
-    Float b = Dot((Float)2*transRay.d,(transRay.o-mCenter));
-    Float c = Dot((transRay.o-mCenter),(transRay.o-mCenter))- mRadius*mRadius;
+    auto o = transRay.o;
+    auto d = transRay.d;
+    Float a = Dot(d,d);
+    Float b = Dot((Float)2*d,(o-mCenter));
+    Float c = Dot((o-mCenter),(o-mCenter))- mRadius*mRadius;
+
 
     Float delta = b*b-4*a*c;
     
@@ -19,15 +22,13 @@ Interaction Sphere::Intersect(const Ray& ray) const {
     else if (s2 > 0) t = s2;
     else return Interaction();
     
-    Point3f position = transRay.o+t*transRay.d;
+    Point3f position = o+t*d;
     position = mObjectToWorld(position);
     Vector3f normal = GetNormal(position);
-    return Interaction(position,normal,-ray.d,(Shape*)this);    
+    return Interaction(position, normal,-ray.d,(Shape*)this);    
 }
 
 Vector3f Sphere::GetNormal(Point3f pt) const {
-    Vector3f normal = mWorldToObject(pt)-mCenter;
-    normal = mObjectToWorld(normal);
-    normal = Normalize(normal);
-    return normal;
+    Normal3f normal = Normal3f(mWorldToObject(pt)-mCenter);
+    return Vector3f(Normalize(mObjectToWorld(normal)));
 }

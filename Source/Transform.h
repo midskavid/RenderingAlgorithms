@@ -127,14 +127,15 @@ class Transform {
         Vector3f oError;
         Point3f o = (*this)(r.o, &oError);
         Vector3f d = (*this)(r.d);
+        d = Normalize(d);
         // Offset ray origin to edge of error bounds and compute _tMax_
-        Float lengthSquared = d.LengthSquared();
+        // Float lengthSquared = d.LengthSquared();
         Float tMax = r.tMax;
-        if (lengthSquared > 0) {
-            Float dt = Dot(Abs(d), oError) / lengthSquared;
-            o += d * dt;
-            tMax -= dt;
-        }
+        // if (lengthSquared > 0) {
+        //     Float dt = Dot(Abs(d), oError) / lengthSquared;
+        //     o += d * dt;
+        //     tMax -= dt;
+        // }
         return Ray(o, d, tMax, r.time);
     }
     Bounds3f operator()(const Bounds3f &b) const;
