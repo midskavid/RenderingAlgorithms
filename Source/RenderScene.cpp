@@ -86,27 +86,38 @@ void RenderScene::ReadFile() {
                     if (validInput) {
                         ambient = RGBColor(values[0], values[1], values[2]); 
                     }
-                } else if (cmd == "diffuse") {
+                } 
+                else if (cmd == "diffuse") {
                     validInput = ReadVals(s, 3, values); // colors 
                     if (validInput) {
                         diffuse = RGBColor(values[0], values[1], values[2]); 
                     }
-                } else if (cmd == "specular") {
+                } 
+                else if (cmd == "specular") {
                     validInput = ReadVals(s, 3, values); // colors 
                     if (validInput) {
                         specular = RGBColor(values[0], values[1], values[2]); 
                     }
-                } else if (cmd == "emission") {
+                } 
+                else if (cmd == "emission") {
                     validInput = ReadVals(s, 3, values); // colors 
                     if (validInput) {
                         emission = RGBColor(values[0], values[1], values[2]); 
                     }
-                } else if (cmd == "shininess") {
+                } 
+                else if (cmd == "shininess") {
                     validInput = ReadVals(s, 1, values); // float 
                     if (validInput) {
                         shininess = values[0];
                     }
-                } else if (cmd == "size") {
+                }
+                else if (cmd == "attenuation") {
+                    validInput = ReadVals(s, 3, values); // float 
+                    if (validInput) {
+                        attenuation = std::array<Float,3> {values[0], values[1], values[2]};
+                    }
+                }
+                else if (cmd == "size") {
                     validInput = ReadVals(s,2,values); 
                     if (validInput) { 
                         mWidth = (int) values[0]; 
@@ -167,9 +178,10 @@ void RenderScene::ReadFile() {
                     }
                 }
                 else if (cmd == "rotate") {
-                    validInput = ReadVals(s,3,values); 
+                    validInput = ReadVals(s,4,values); 
                     if (validInput) {
-                        RightMultiply(transfstack, Rotate(values[3], Vector3f(values[0], values[1], values[2])));
+                        auto rot = Rotate(values[3], Vector3f(values[0], values[1], values[2]));
+                        RightMultiply(transfstack, rot);
                     }
                 }
                 else if (cmd == "pushTransform") {
