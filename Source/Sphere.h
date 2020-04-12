@@ -9,7 +9,7 @@ public:
             mCenter(cen),
             mRadius(radius),
             Shape(trans, diffuse, ambient, specular, emission, shininess) {
-                mWorldToObject = Transform(mObjectToWorld.GetInverseMatrix(), mObjectToWorld.GetMatrix());
+                mWorldToObject = Inverse(trans);
              }
     //Bounds3f ObjectBounds() const override;
     Interaction Intersect(const Ray& ray) const override;

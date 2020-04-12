@@ -28,7 +28,7 @@ RGBColor Scene::GetColor(Ray& ray, int depth) {
         Vector3f normal = closestIntr.GetNormal();
         Vector3f reflected = Normalize(ray.d - 2*Dot(normal,ray.d)*normal);
         // TODO:[mkaviday] offset ray..
-        Ray refl(closestIntr.GetPosition()+0.01*reflected, reflected);
+        Ray refl(closestIntr.GetPosition()+Float(.1)*reflected, reflected);
         //std::cout<<GetColor(refl, depth-1)<<std::endl;
         return hit->GetColor(closestIntr, depth) + hit->GetSpecular()*GetColor(refl, depth+1);
 
