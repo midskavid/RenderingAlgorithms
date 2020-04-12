@@ -29,4 +29,9 @@ private:
     Float mR, mG, mB;
 };
 
+inline std::ostream &operator<<(std::ostream &os, const RGBColor &v) {
+    os << "[ " << v.GetRed() << ", " << v.GetGreen() << ", " << v.GetBlue() << " ]";
+    return os;
+}
+
 #endif

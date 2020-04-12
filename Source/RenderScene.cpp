@@ -215,11 +215,11 @@ void RenderScene::Render(std::string outFileName) {
         for (int jj=0;jj<mWidth;++jj) {
             auto pt = Point2i(ii,jj);
             auto ray = mCamera->GenerateRay(pt);
-            auto col = mScene->GetColor(ray, mMaxDepth);
+            auto col = mScene->GetColor(ray, 0);
             mFilm->AddColor(pt, col);
         }
     }
-    mFilm->WriteToImage(outFileName);
+    mFilm->WriteToImage(mOutFileName);
 }
 
 int main(int argc, char*argv[]) {

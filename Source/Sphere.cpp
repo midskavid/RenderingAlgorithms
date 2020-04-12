@@ -1,10 +1,10 @@
 #include "Sphere.h"
 
 Interaction Sphere::Intersect(const Ray& ray) const {
-    auto transRay = mWorldToObject(ray);
-    auto a = Dot(transRay.d,transRay.d);
-    auto b = Dot((Float)2*transRay.d,(transRay.o-mCenter));
-    auto c = Dot((transRay.o-mCenter),(transRay.o-mCenter))- mRadius*mRadius;
+    Ray transRay = mWorldToObject(ray);
+    Float a = Dot(transRay.d,transRay.d);
+    Float b = Dot((Float)2*transRay.d,(transRay.o-mCenter));
+    Float c = Dot((transRay.o-mCenter),(transRay.o-mCenter))- mRadius*mRadius;
 
     Float delta = b*b-4*a*c;
     
@@ -21,7 +21,7 @@ Interaction Sphere::Intersect(const Ray& ray) const {
     
     Point3f position = transRay.o+t*transRay.d;
     position = mObjectToWorld(position);
-    Vector3f normal = this->GetNormal(position);
+    Vector3f normal = GetNormal(position);
     return Interaction(position,normal,-ray.d,(Shape*)this);    
 }
 

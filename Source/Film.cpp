@@ -12,6 +12,7 @@ void Film::WriteToImage(std::string fname) {
     for(int jj=0;jj<mHeight;++jj) {
         auto& row = mFilm[jj];
         for(int ii=0;ii<mWidth;++ii) {
+            //std::cout<<row[ii]<<std::endl;
             c.rgbRed = row[ii].GetRed()*255;
             c.rgbGreen = row[ii].GetGreen()*255;
             c.rgbBlue = row[ii].GetBlue()*255;

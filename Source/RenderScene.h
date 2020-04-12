@@ -14,13 +14,13 @@ private:
     bool ReadVals(std::stringstream &s, const int numvals, Float* values);
 private:
     int mWidth, mHeight;
-    int mMaxDepth;
     Camera* mCamera;
     Film* mFilm;
     std::string mSceneFileName;
     std::string mOutFileName;
 public:
     Scene* mScene;
+    int mMaxDepth;
 };
 
 #endif

@@ -2,16 +2,17 @@
 #include "RGBColor.h"
 #include "Transform.h"
 #include "Shape.h"
+#include "RenderScene.h"
 
 RGBColor Scene::GetColor(Ray& ray, int depth) {
     RGBColor color(0,0,0);
-    if (depth==0) return color;
+    if (depth==renderer->mMaxDepth) return color;
     Float nearest = Infinity;
     Shape* hit = nullptr;
     Interaction closestIntr;
 
     for (const auto& shape:mShape) {
-        auto intr = shape->Intersect(ray); // updates tmax too..
+        auto intr = shape->Intersect(ray);
         if (intr.IsHit()) {
             // update to the closest object...
             auto dist = Distance(ray.o, intr.GetPosition());
@@ -25,12 +26,11 @@ RGBColor Scene::GetColor(Ray& ray, int depth) {
 
     if (hit) {
         Vector3f normal = closestIntr.GetNormal();
-       
-        Vector3f comp = std::abs(Dot(normal,ray.d))*normal;
-        Vector3f reflected = Normalize(ray.d + 2*comp);
+        Vector3f reflected = Normalize(ray.d - 2*Dot(normal,ray.d)*normal);
         // TODO:[mkaviday] offset ray..
-        Ray refl(closestIntr.GetPosition()+0.3*reflected, reflected);
-        return hit->GetColor(closestIntr) + hit->GetSpecular()*GetColor(refl, depth-1);
+        Ray refl(closestIntr.GetPosition()+0.01*reflected, reflected);
+        //std::cout<<GetColor(refl, depth-1)<<std::endl;
+        return hit->GetColor(closestIntr, depth) + hit->GetSpecular()*GetColor(refl, depth+1);
 
     }
     return color;

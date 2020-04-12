@@ -1,7 +1,7 @@
 #include "Shape.h"
 #include "RenderScene.h"
 
-RGBColor Shape::GetColor(Interaction& itrPoint) {
+RGBColor Shape::GetColor(Interaction& itrPoint, int depth) {
     if (!itrPoint.IsHit()) return RGBColor(0,0,0);
     RGBColor color(0,0,0);
 
@@ -17,8 +17,9 @@ RGBColor Shape::GetColor(Interaction& itrPoint) {
             //TODO : [mkaviday] check attenuation
             color = color + (lamb+phong)*lt->GetAttenuation(itrPoint.GetPosition());
         }
+        //else std::cout<<"Blocked..\n";
     }
-
-    color = color + mAmbient + mEmission;
+    if (depth==1)
+        color = color + mAmbient + mEmission;
     return color;
 }

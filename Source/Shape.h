@@ -24,7 +24,7 @@ public:
     //virtual Bounds3f ObjectBounds() const = 0;
     //virtual Bounds3f WorldBounds() const;
     virtual Interaction Intersect(const Ray &ray) const = 0;
-    RGBColor GetColor(Interaction& itrPoint);
+    RGBColor GetColor(Interaction& itrPoint, int depth);
     RGBColor GetSpecular() const {return mSpecular;}
 protected:
     RGBColor mAmbient;
