@@ -19,7 +19,7 @@ RGBColor Shape::GetColor(Interaction& itrPoint, int depth) {
         }
         //else std::cout<<"Blocked..\n";
     }
-    if (depth==1)
+    if (depth==0)
         color = color + mAmbient + mEmission;
     return color;
 }
