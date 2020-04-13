@@ -1,5 +1,5 @@
 CC = g++ -std=c++11
-CFLAGS = -O3
+CFLAGS = -O3 -fopenmp
 INCFLAGS = -I"./FreeImage/" -I"./Source/"
 LDFLAGS = -L"./FreeImage/" -lfreeimage
 

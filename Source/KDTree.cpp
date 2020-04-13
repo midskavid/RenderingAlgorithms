@@ -1,12 +1,12 @@
 #include "KDTree.h"
 #include "Shape.h"
 
-KDTreeNode* KDTree::Build(std::vector<Shape*>& shapes, Bounds3f& boundsRoot, int depth) {
+KDTree::KDTreeNode* KDTree::Build(std::vector<Shape*>& shapes, Bounds3f& boundsRoot, int depth) {
     auto root = new KDTreeNode();
     root->mPrimitives = shapes;
     root->mBounds = boundsRoot;
 
-    if (shapes.size()<10) {
+    if (shapes.size()<10||depth>1000) {
         // Do not recurse..
         return root;
     }
@@ -18,8 +18,12 @@ KDTreeNode* KDTree::Build(std::vector<Shape*>& shapes, Bounds3f& boundsRoot, int
     }
     centroidAll /= shapes.size();
     //TODO : [mkaviday] remove safety check..
-    if (!Inside(centroidAll, boundsRoot)) std::cout<<"WTF!\n";
     int splitAxis = boundsRoot.MaximumExtent();
+    if (!Inside(centroidAll, boundsRoot)) {
+        //std::cout<<"WTF!\n";
+        centroidAll[splitAxis] = (boundsRoot.pMax[splitAxis]+boundsRoot.pMin[splitAxis])/2;
+    }
+    
 
     Bounds3f leftBounds, rightBounds;
     switch (splitAxis)
@@ -41,20 +45,23 @@ KDTreeNode* KDTree::Build(std::vector<Shape*>& shapes, Bounds3f& boundsRoot, int
     std::vector<Shape*> leftNodes;
     std::vector<Shape*> rightNodes;
     int common = 0;
-    bool leftpushed;
+    bool leftpushed, rightpushed;
     for (auto& sh:shapes) {
         leftpushed = false;
+        rightpushed = false;
         if (Overlaps(leftBounds, sh->GetWorldBounds())) {
             leftNodes.emplace_back(sh);
             leftpushed = true;
         }
         if (Overlaps(rightBounds, sh->GetWorldBounds())) {
             rightNodes.emplace_back(sh);
+            rightpushed = true;
             if (leftpushed) ++common;
         }
+        if ((!leftpushed)&&(!rightpushed)) std::cout<<"ERROR:Obj Left Out in splitting\n";
     }
 
-    if (common/shapes.size()>.7) {
+    if (Float(common)/leftNodes.size()>.5||Float(common)/rightNodes.size()>.5) {
         // Dont recurse..
         return root;
     }
@@ -66,10 +73,8 @@ KDTreeNode* KDTree::Build(std::vector<Shape*>& shapes, Bounds3f& boundsRoot, int
 
 bool KDTree::Intersect(Ray& ray, KDTreeNode* root, Float* tmin, Interaction* intr){
     if (!root) return false;
-    Float t;
-    if (root->mBounds.IntersectP(ray,&t)) {
-        if (t>*tmin) return true; // Short-circuit
-        if (!root->left) {
+    if (root->mBounds.IntersectP(ray)) {
+        if (root->left==nullptr) {
             // base case..
             bool hit = false;
             for (auto& shape:root->mPrimitives) {
@@ -86,7 +91,9 @@ bool KDTree::Intersect(Ray& ray, KDTreeNode* root, Float* tmin, Interaction* int
             return hit;
         }
         else {
-            return Intersect(ray, root->left, tmin, intr) || Intersect(ray, root->right, tmin, intr);
+            bool a = Intersect(ray, root->left, tmin, intr);
+            bool b = Intersect(ray, root->right, tmin, intr);
+            return  a||b;
         }
     }
     return false;

@@ -32,6 +32,7 @@ void RenderScene::ReadFile() {
     std::ifstream in;
     in.open(mSceneFileName); 
     if (in.is_open()) {
+        std::cout<<"Parsing File..\n";
         std::stack <Transform> transfstack; 
         transfstack.push(Transform());  // identity
         
@@ -44,6 +45,7 @@ void RenderScene::ReadFile() {
         RGBColor specular;
         RGBColor emission;
         Float shininess;
+        Bounds3f boundingBoxAll;
 
         getline (in, str); 
         while (in) {
@@ -153,6 +155,13 @@ void RenderScene::ReadFile() {
                         Point3f vert2 = transfstack.top()(vertices[values[1]]);
                         Point3f vert3 = transfstack.top()(vertices[values[2]]);
                         Shape* shp = new Triangle(vert1, vert2, vert3, transfstack.top(), diffuse, ambient, specular, emission, shininess);
+                        if (shapes.empty()) {
+                            boundingBoxAll = shp->GetWorldBounds();
+                        }
+                        else {
+                            boundingBoxAll = Union(boundingBoxAll, shp->GetWorldBounds());
+                        }
+
                         shapes.emplace_back(shp);
                     }
                 }
@@ -162,6 +171,12 @@ void RenderScene::ReadFile() {
                         Point3f cen{values[0], values[1], values[2]};
                         Float rad = values[3];
                         Shape* shp = new Sphere(cen, rad, transfstack.top(), diffuse, ambient, specular, emission, shininess);
+                        if (shapes.empty()) {
+                            boundingBoxAll = shp->GetWorldBounds();
+                        }
+                        else {
+                            boundingBoxAll = Union(boundingBoxAll, shp->GetWorldBounds());
+                        }
                         shapes.emplace_back(shp);
                     }
                 }
@@ -202,15 +217,29 @@ void RenderScene::ReadFile() {
             std::getline (in, str); 
         }
         // Init Scene..
-        mScene = new Scene(lights, shapes);
+
+        // Sanity check..
+        for (auto& sh : shapes) {
+            auto bounds = sh->GetWorldBounds();
+            if (!Overlaps(bounds, boundingBoxAll))
+                std::cout<<"does not overlap..\n";
+        }
+        std::cout<<"ParsedFile..\n";
+        std::cout<<"Build KDTree..\n";
+        mScene = new Scene(lights, shapes, boundingBoxAll);
+        std::cout<<"Built KDTree..\n";
     }
     else {
         std::cerr << "Unable to Open Input Data File " << mSceneFileName << "\n"; 
         throw 2; 
     }
+    
 }
 
 void RenderScene::Render(std::string outFileName) {
+    std::cout<<"Begin Rendering..\n";
+    auto t1 = std::chrono::high_resolution_clock::now();
+    #pragma omp parallel for num_threads(6) collapse(2)
     for (int ii=0;ii<mHeight;++ii) {
         for (int jj=0;jj<mWidth;++jj) {
             auto pt = Point2i(ii,jj);
@@ -219,7 +248,14 @@ void RenderScene::Render(std::string outFileName) {
             mFilm->AddColor(pt, col);
         }
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+
+    std::cout<<"Time taken for Render loop : "<<duration/1000.<<"s."<<std::endl;
+    std::cout<<"Image Rendered..\n";
+    std::cout<<"Dump to File..\n";
     mFilm->WriteToImage(mOutFileName);
+    std::cout<<"Done..\n";
 }
 
 int main(int argc, char*argv[]) {
@@ -229,7 +265,6 @@ int main(int argc, char*argv[]) {
     }
     renderer = new RenderScene(argv[1]);
     renderer->ReadFile();
-    std::cout<<"ParsedFile..\n";
     renderer->Render("RenderedScene.png");
     
     return 0;
