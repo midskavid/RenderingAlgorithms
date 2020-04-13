@@ -4,7 +4,7 @@
 bool DirectionalLightSource::Unoccluded(Interaction& itr) const {
     auto pos = itr.GetPosition();
 
-    Ray r = Ray(pos+Float(0.1)*mDirection, mDirection);
+    Ray r = Ray(pos+Float(0.001)*mDirection, mDirection);
     Float its = renderer->mScene->GetClosestDistance(r);
 
     if(its<0.0) {

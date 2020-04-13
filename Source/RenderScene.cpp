@@ -239,7 +239,7 @@ void RenderScene::ReadFile() {
 void RenderScene::Render(std::string outFileName) {
     std::cout<<"Begin Rendering..\n";
     auto t1 = std::chrono::high_resolution_clock::now();
-    #pragma omp parallel for num_threads(6) collapse(2)
+    #pragma omp parallel for num_threads(8) collapse(2)
     for (int ii=0;ii<mHeight;++ii) {
         for (int jj=0;jj<mWidth;++jj) {
             auto pt = Point2i(ii,jj);

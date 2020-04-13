@@ -5,7 +5,7 @@ bool PointLightSource::Unoccluded(Interaction& itr) const {
     auto pos = itr.GetPosition();
     auto direction = Normalize(mPosition-pos);
 
-    Ray r = Ray(pos+Float(.1)*direction, direction);
+    Ray r = Ray(pos+Float(0.001)*direction, direction);
     Float its = renderer->mScene->GetClosestDistance(r);
 
     if(its<0.0) {
