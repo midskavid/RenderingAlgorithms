@@ -11,9 +11,12 @@ public:
                 mV3(vert3),
                 Shape(trans, diffuse, ambient, specular, emission, shininess) {
                     mN = Normalize(Cross(mV2-mV1, mV3-mV1));
+                    mBounds = Bounds3f(mV1, mV2, mV3);
+                    mCentroid = (mV1+mV2+mV3)/2;
                  }
-    //Bounds3f ObjectBounds() const override;
+    Bounds3f GetWorldBounds() const override {return mBounds;}
     Interaction Intersect(const Ray& ray) const override;
+    Point3f GetCentroid() const override {return mCentroid;}
 private:
     Point3f mV1;
     Point3f mV2;

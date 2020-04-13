@@ -10,9 +10,12 @@ public:
             mRadius(radius),
             Shape(trans, diffuse, ambient, specular, emission, shininess) {
                 mWorldToObject = Inverse(trans);
+                mBounds = mObjectToWorld(Bounds3f(Point3f(mCenter[0]-mRadius, mCenter[1]-mRadius, mCenter[2]-mRadius), Point3f(mCenter[0]+mRadius, mCenter[1]+mRadius, mCenter[2]+mRadius)));
+                mCentroid = mCenter;
              }
-    //Bounds3f ObjectBounds() const override;
+    Bounds3f GetWorldBounds() const override {return mBounds;}
     Interaction Intersect(const Ray& ray) const override;
+    Point3f GetCentroid() const override {return mCentroid;}
 private:
     Vector3f GetNormal(Point3f pt) const;
 private:

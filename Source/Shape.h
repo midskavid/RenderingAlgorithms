@@ -22,8 +22,9 @@ public:
 
     virtual ~Shape() { }
     //virtual Bounds3f ObjectBounds() const = 0;
-    //virtual Bounds3f WorldBounds() const;
+    virtual Bounds3f GetWorldBounds() const = 0;
     virtual Interaction Intersect(const Ray &ray) const = 0;
+    virtual Point3f GetCentroid() const = 0;
     RGBColor GetColor(Interaction& itrPoint, int depth);
     RGBColor GetSpecular() const {return mSpecular;}
 protected:
@@ -33,6 +34,8 @@ protected:
     RGBColor mEmission;
     Float mShininess;
     const Transform mObjectToWorld;
+    Bounds3f mBounds;
+    Point3f mCentroid;
 };
 
 #endif

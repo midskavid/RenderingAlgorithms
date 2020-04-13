@@ -635,6 +635,12 @@ class Bounds3 {
                std::min(p1.z, p2.z)),
           pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y),
                std::max(p1.z, p2.z)) {}
+    Bounds3(const Point3<T> &p1, const Point3<T> &p2, const Point3<T>& p3)
+        : pMin(std::min({p1.x, p2.x, p3.x}), std::min({p1.y, p2.y, p3.y}),
+               std::min({p1.z, p2.z, p3.z})),
+          pMax(std::max({p1.x, p2.x, p3.x}), std::max({p1.y, p2.y, p3.y}),
+               std::max({p1.z, p2.z, p3.z})) {}
+
     const Point3<T> &operator[](int i) const;
     Point3<T> &operator[](int i);
     bool operator==(const Bounds3<T> &b) const {
@@ -1198,7 +1204,7 @@ Bounds2<T> Expand(const Bounds2<T> &b, U delta) {
     return Bounds2<T>(b.pMin - Vector2<T>(delta, delta),
                       b.pMax + Vector2<T>(delta, delta));
 }
-#if 0
+
 template <typename T>
 inline bool Bounds3<T>::IntersectP(const Ray &ray, Float *hitt0,
                                    Float *hitt1) const {
@@ -1222,7 +1228,7 @@ inline bool Bounds3<T>::IntersectP(const Ray &ray, Float *hitt0,
     if (hitt1) *hitt1 = t1;
     return true;
 }
-
+#if 0
 template <typename T>
 inline bool Bounds3<T>::IntersectP(const Ray &ray, const Vector3f &invDir,
                                    const int dirIsNeg[3]) const {
