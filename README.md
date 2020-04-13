@@ -7,5 +7,5 @@ Assignment 1
 - edX username : mkaviday
 - edX email : mkaviday@eng.ucsd.edu
 - [Image-Grader High-res](https://lifan.s3.amazonaws.com/homework1/f18ea7d5430de16431b336b8bb7437b2/20200413194205/index.html)
-- Platform : Linux (C++11, openmp)
+- Platform : Linux (C++11, openmp). Makefile included. Run command ./RenderScene <scenefile>
 - Acceleration Structure used : KDTree. Relevant files KDTree.cpp, KDTree.h
