@@ -1,7 +1,7 @@
-*.o
-a.out
-RenderScene
-Resources/*
-Source/*.o
-.vscode/*
-*.png
+Assignment1/*.o
+Assignment1/a.out
+Assignment1/RenderScene
+Assignment1/Resources/*
+Assignment1/Source/*.o
+Assignment1/.vscode/*
+Assignment1/*.png
