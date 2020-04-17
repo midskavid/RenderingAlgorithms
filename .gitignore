@@ -3,5 +3,8 @@ Assignment1/a.out
 Assignment1/RenderScene
 Assignment1/Resources/*
 Assignment1/Source/*.o
-Assignment1/.vscode/*
 Assignment1/*.png
+Assignment2/build/*
+Assignment2/Debug/*
+Assignment2/Release/*
+Assignment2/*.png
