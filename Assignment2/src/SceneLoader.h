@@ -8,4 +8,5 @@
 void loadScene(
     const std::string& filePath,
     RTCDevice device,
-    Scene** scene);
+    Scene** scene,
+    IntegratorType& integratorType);

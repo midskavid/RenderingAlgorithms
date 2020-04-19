@@ -21,7 +21,7 @@ class SceneLoader {
 private:
 
     RTCDevice _embreeDevice;
-
+    IntegratorType _integratorType = IntegratorType::kRayTracerIntegrator;
     glm::uvec2 _imageSize = glm::uvec2(1280, 720);
     int _maxDepth = 5;
     std::string _outputFileName = "out.png";
@@ -39,6 +39,7 @@ private:
     std::vector<glm::mat4> _transformStack;
     std::vector<directionalLight_t> _directionalLights;
     std::vector<pointLight_t> _pointLights;
+    std::vector<quadLight_t> _quadLights;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
@@ -100,6 +101,10 @@ void SceneLoader::executeCommand(
     } else if (command == "output") {
 
         _outputFileName = arguments[0];
+
+    } else if (command == "integrator") {
+        if (arguments[0] == "analyticdirect")
+            _integratorType = IntegratorType::kAnalyticIntegrator;
 
     } else if (command == "camera") {
 
@@ -187,6 +192,14 @@ void SceneLoader::executeCommand(
 
         _pointLights.push_back(light);
 
+    } else if (command == "quadLight") {
+        quadLight_t light;
+        light._a = loadVec3(arguments, 0);
+        light._ab = loadVec3(arguments, 3);
+        light._ac = loadVec3(arguments, 6);
+        light._intensity = loadVec3(arguments, 9);
+
+        _quadLights.push_back(light);
     } else if (command == "attenuation") {
 
         _curAttenuation = loadVec3(arguments);
@@ -347,15 +360,16 @@ Scene* SceneLoader::commitSceneData()
     scene->triMaterials = std::move(_triMaterials);
     scene->directionalLights = std::move(_directionalLights);
     scene->pointLights = std::move(_pointLights);
+    scene->quadLights = std::move(_quadLights);
     scene->embreeScene = createEmbreeScene();
-
+    
     return scene;
 }
 
 void loadScene(
     const std::string& filePath,
     RTCDevice embreeDevice,
-    Scene** scene)
+    Scene** scene, IntegratorType& integratorType)
 {
     SceneLoader sceneLoader(embreeDevice);
     sceneLoader.loadSceneData(filePath);

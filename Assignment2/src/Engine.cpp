@@ -96,7 +96,8 @@ void render(const std::string& sceneFilePath)
     rtcSetDeviceErrorFunction(embreeDevice, embreeErrorFunction, nullptr);
 
     Scene* scene;
-    loadScene(sceneFilePath, embreeDevice, &scene);
+    IntegratorType _integratorType;
+    loadScene(sceneFilePath, embreeDevice, &scene, _integratorType);
 
     RayTracerIntegrator integrator;
     integrator.setScene(scene);
