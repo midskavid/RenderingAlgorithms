@@ -7,6 +7,12 @@
 #include <glm/glm.hpp>
 #include <embree3/rtcore.h>
 
+enum geometryID_t {
+    kTriangle,
+    kSphere,
+    kQuadLight
+};
+
 struct camera_t {
     glm::vec3 origin;
     glm::vec3 imagePlaneTopLeft;
@@ -35,8 +41,9 @@ struct pointLight_t {
 
 struct quadLight_t {
     glm::vec3 _a;
-    glm::vec3 _ab;
-    glm::vec3 _ac;
+    glm::vec3 _b;
+    glm::vec3 _c;
+    glm::vec3 _d;
     glm::vec3 _intensity;
 };
 

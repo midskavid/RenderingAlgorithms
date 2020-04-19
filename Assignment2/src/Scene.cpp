@@ -34,12 +34,16 @@ bool Scene::castRay(
     if (rayHit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
         *hitPosition = origin + direction * rayHit.ray.tfar;
         *hitNormal = glm::normalize(glm::vec3(rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z));
-        if (rayHit.hit.instID[0] == RTC_INVALID_GEOMETRY_ID) {
+        if (rayHit.hit.geomID == geometryID_t::kTriangle) {
             *hitMaterial = triMaterials[rayHit.hit.primID];
-        } else {
+        } 
+        else if (rayHit.hit.geomID == geometryID_t::kSphere){
             int sphereIndex = rayHit.hit.instID[0] - 1;
             *hitNormal = glm::normalize(sphereNormalTransforms[sphereIndex] * (*hitNormal));
             *hitMaterial = sphereMaterials[sphereIndex];
+        }
+        else if (rayHit.hit.geomID == geometryID_t::kQuadLight){
+            int sphereIndex = rayHit.hit.instID[0] - 1;
         }
         return true;
     } else {
@@ -65,6 +69,6 @@ bool Scene::castOcclusionRay(glm::vec3 origin, glm::vec3 direction, float maxDis
     ray.flags = 0;
 
     rtcOccluded1(embreeScene, &context, &ray);
-
+    // TODO : change this to handle intersection with quadlight
     return (ray.tfar < 0.0f);
 }

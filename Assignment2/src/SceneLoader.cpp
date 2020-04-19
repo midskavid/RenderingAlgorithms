@@ -12,7 +12,6 @@
 
 #include "Constants.h"
 #include "Scene.h"
-#include "Integrator.h"
 
 #include "SceneLoader.h"
 
@@ -40,6 +39,9 @@ private:
     std::vector<directionalLight_t> _directionalLights;
     std::vector<pointLight_t> _pointLights;
     std::vector<quadLight_t> _quadLights;
+    std::vector<glm::uvec4> _quadIndices;
+    std::vector<glm::vec3> _quadVertices;
+
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
@@ -59,8 +61,9 @@ public:
     Integrator* createIntegrator();
     void loadEmbreeTriangles(RTCScene embreeScene);
     void loadEmbreeSpheres(RTCScene embreeScene);
+    void loadEmbreeQuadLights(RTCScene embreeScene);
     RTCScene createEmbreeScene();
-    Scene* commitSceneData();
+    Scene* commitSceneData(IntegratorType& integratorType);
 
 };
 
@@ -195,9 +198,24 @@ void SceneLoader::executeCommand(
     } else if (command == "quadLight") {
         quadLight_t light;
         light._a = loadVec3(arguments, 0);
-        light._ab = loadVec3(arguments, 3);
-        light._ac = loadVec3(arguments, 6);
+        auto _ab = loadVec3(arguments, 3);
+        auto _ac = loadVec3(arguments, 6);
+        light._b = _ab + light._a;
+        light._c = _ac + light._a;
+        light._d = _ab + _ac + light._a;
         light._intensity = loadVec3(arguments, 9);
+
+        _quadIndices.push_back(glm::uvec4(
+            _quadVertices.size(),
+            _quadVertices.size() + 1,
+            _quadVertices.size() + 3,
+            _quadVertices.size() + 2));
+
+        // Following the convention that Light sources are not being multiplied by transformation
+        _quadVertices.push_back(light._a);
+        _quadVertices.push_back(light._b);
+        _quadVertices.push_back(light._c);
+        _quadVertices.push_back(light._d);
 
         _quadLights.push_back(light);
     } else if (command == "attenuation") {
@@ -278,7 +296,8 @@ void SceneLoader::loadEmbreeTriangles(RTCScene embreeScene)
     std::memcpy(embreeIndices, _indices.data(), _indices.size() * sizeof(glm::uvec3));
 
     rtcCommitGeometry(embreeTriangles);
-    rtcAttachGeometry(embreeScene, embreeTriangles);
+    //rtcAttachGeometry(embreeScene, embreeTriangles);
+    rtcAttachGeometryByID(embreeScene, embreeTriangles, geometryID_t::kTriangle);
     rtcReleaseGeometry(embreeTriangles);
 }
 
@@ -298,7 +317,8 @@ void SceneLoader::loadEmbreeSpheres(RTCScene embreeScene)
     *embreeSpherePoint = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     rtcCommitGeometry(embreeSphere);
-    rtcAttachGeometry(embreeSphereScene, embreeSphere);
+    //rtcAttachGeometry(embreeSphereScene, embreeSphere);
+    rtcAttachGeometryByID(embreeSphereScene, embreeSphere, geometryID_t::kSphere);
     rtcReleaseGeometry(embreeSphere);
     rtcCommitScene(embreeSphereScene);
 
@@ -319,16 +339,44 @@ void SceneLoader::loadEmbreeSpheres(RTCScene embreeScene)
     rtcReleaseScene(embreeSphereScene);
 }
 
+void SceneLoader::loadEmbreeQuadLights(RTCScene embreeScene) {
+    RTCGeometry embreeQuads = rtcNewGeometry(_embreeDevice, RTC_GEOMETRY_TYPE_QUAD);
+
+    glm::vec3* embreeVertices = reinterpret_cast<glm::vec3*>(rtcSetNewGeometryBuffer(
+        embreeQuads,
+        RTC_BUFFER_TYPE_VERTEX,
+        0,
+        RTC_FORMAT_FLOAT3,
+        sizeof(glm::vec3),
+        _quadVertices.size()));
+    std::memcpy(embreeVertices, _quadVertices.data(), _quadVertices.size() * sizeof(glm::vec3));
+
+    glm::uvec4* embreeIndices = reinterpret_cast<glm::uvec4*>(rtcSetNewGeometryBuffer(
+        embreeQuads,
+        RTC_BUFFER_TYPE_INDEX,
+        0,
+        RTC_FORMAT_UINT4,
+        sizeof(glm::uvec4),
+        _quadIndices.size()));
+    std::memcpy(embreeIndices, _quadIndices.data(), _quadIndices.size() * sizeof(glm::uvec4));
+
+    rtcCommitGeometry(embreeQuads);
+    //rtcAttachGeometry(embreeScene, embreeTriangles);
+    rtcAttachGeometryByID(embreeScene, embreeQuads, geometryID_t::kQuadLight);
+    rtcReleaseGeometry(embreeQuads);
+}
+
 RTCScene SceneLoader::createEmbreeScene()
 {
     RTCScene embreeScene = rtcNewScene(_embreeDevice);
     loadEmbreeTriangles(embreeScene);
     loadEmbreeSpheres(embreeScene);
+    loadEmbreeQuadLights(embreeScene);
     rtcCommitScene(embreeScene);
     return embreeScene;
 }
 
-Scene* SceneLoader::commitSceneData()
+Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
 {
     float aspectRatio = static_cast<float>(_imageSize.x) / _imageSize.y;
     glm::vec3 cameraLook = glm::normalize(_cameraLookAt - _cameraOrigin);
@@ -362,7 +410,7 @@ Scene* SceneLoader::commitSceneData()
     scene->pointLights = std::move(_pointLights);
     scene->quadLights = std::move(_quadLights);
     scene->embreeScene = createEmbreeScene();
-    
+    integratorType = _integratorType;
     return scene;
 }
 
@@ -373,5 +421,5 @@ void loadScene(
 {
     SceneLoader sceneLoader(embreeDevice);
     sceneLoader.loadSceneData(filePath);
-    *scene = sceneLoader.commitSceneData();
+    *scene = sceneLoader.commitSceneData(integratorType);
 }

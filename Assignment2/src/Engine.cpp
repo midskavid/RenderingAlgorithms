@@ -96,15 +96,25 @@ void render(const std::string& sceneFilePath)
     rtcSetDeviceErrorFunction(embreeDevice, embreeErrorFunction, nullptr);
 
     Scene* scene;
-    IntegratorType _integratorType;
-    loadScene(sceneFilePath, embreeDevice, &scene, _integratorType);
+    IntegratorType integratorType;
+    loadScene(sceneFilePath, embreeDevice, &scene, integratorType);
 
-    RayTracerIntegrator integrator;
-    integrator.setScene(scene);
+    Integrator* integrator = nullptr;
+    switch (integratorType)
+    {
+    case IntegratorType::kRayTracerIntegrator:
+        integrator = new RayTracerIntegrator;
+        break;
+    case IntegratorType::kAnalyticIntegrator:
+        integrator = new AnalyticIntegrator;
+        break;
+    }
+    integrator->setScene(scene);
 
     std::cout << "Preparing render jobs..." << std::endl;
 
-    int numThreads = std::thread::hardware_concurrency();
+    //int numThreads = std::thread::hardware_concurrency();
+    int numThreads = 1;
 
     std::vector<RenderJob*> jobs;
     for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
@@ -127,7 +137,7 @@ void render(const std::string& sceneFilePath)
 
     TimePoint startTime = Clock::now();
     {
-        RenderPool pool(scene, &integrator, numThreads, jobs);
+        RenderPool pool(scene, integrator, numThreads, jobs);
 
         size_t numCompletedJobs = 0;
         while (numCompletedJobs < jobs.size()) {

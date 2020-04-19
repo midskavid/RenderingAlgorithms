@@ -29,6 +29,7 @@ set(LIB_SOURCES
     src/SceneLoader.cpp
     src/RenderPool.cpp
     src/RayTracerIntegrator.cpp
+    src/AnalyticIntegrator.cpp
     src/lodepng/lodepng.cpp
 )
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)

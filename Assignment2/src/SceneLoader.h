@@ -4,6 +4,7 @@
 #include <embree3/rtcore.h>
 
 #include "Scene.h"
+#include "Integrator.h"
 
 void loadScene(
     const std::string& filePath,

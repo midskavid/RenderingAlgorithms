@@ -42,7 +42,12 @@ public:
 };
 
 class AnalyticIntegrator : public Integrator {
-    glm::vec3 computeShading(glm::vec3 incidentDirection, const quadLight_t& light, glm::vec3 normal, glm::vec3 lightBrightness, const material_t& material);
+    glm::vec3 computeShading(
+        glm::vec3 incidentDirection,
+        const quadLight_t& light,
+        glm::vec3 normal,
+        glm::vec3 lightBrightness,
+        const material_t& material);
 
 public:
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
