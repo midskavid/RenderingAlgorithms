@@ -33,6 +33,13 @@ struct pointLight_t {
     glm::vec3 attenuation;
 };
 
+struct quadLight_t {
+    glm::vec3 _a;
+    glm::vec3 _ab;
+    glm::vec3 _ac;
+    glm::vec3 _intensity;
+};
+
 class Scene {
 
 public:
@@ -46,6 +53,7 @@ public:
     std::vector<material_t> triMaterials;
     std::vector<directionalLight_t> directionalLights;
     std::vector<pointLight_t> pointLights;
+    std::vector<quadLight_t> quadLights;
     RTCScene embreeScene;
 
     bool castRay(
