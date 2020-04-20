@@ -42,6 +42,8 @@ private:
     std::vector<glm::uvec4> _quadIndices;
     std::vector<glm::vec3> _quadVertices;
     std::vector<material_t> _quadMaterials;
+    bool _lightStratify = false;
+    int _numLightSamples = 1;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
@@ -105,6 +107,10 @@ void SceneLoader::executeCommand(
 
         _outputFileName = arguments[0];
 
+    } else if (command == "lightsamples") {
+        _numLightSamples = std::stoi(arguments[0]);
+    } else if (command == "lightstratify") {
+        _lightStratify = true;
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
@@ -201,11 +207,14 @@ void SceneLoader::executeCommand(
     } else if (command == "quadLight") {
         quadLight_t light;
         light._a = loadVec3(arguments, 0);
-        auto _ab = loadVec3(arguments, 3);
-        auto _ac = loadVec3(arguments, 6);
-        light._b = _ab + light._a;
-        light._c = _ac + light._a;
-        light._d = _ab + _ac + light._a;
+        light._ab = loadVec3(arguments, 3);
+        light._ac = loadVec3(arguments, 6);
+        auto cross = glm::cross(light._ab, light._ac);
+        light._area = cross.length();
+        light._normal = glm::normalize(cross);
+        light._b = light._ab + light._a;
+        light._c = light._ac + light._a;
+        light._d = light._ab + light._ac + light._a;
         light._intensity = loadVec3(arguments, 9);
 
         _quadIndices.push_back(glm::uvec4(
@@ -419,6 +428,8 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->quadLights = std::move(_quadLights);
     scene->quadMaterials = std::move(_quadMaterials);
     scene->embreeScene = createEmbreeScene();
+    scene->numLightSamples = _numLightSamples;
+    scene->lightStratify = _lightStratify;
     integratorType = _integratorType;
     return scene;
 }

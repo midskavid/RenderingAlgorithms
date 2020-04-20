@@ -109,7 +109,7 @@ void render(const std::string& sceneFilePath)
         integrator = new AnalyticIntegrator;
         break;
     case IntegratorType::kDirectIntegrator :
-        integrator = new DirectIntegrator;
+        integrator = new DirectIntegrator(scene->lightStratify, scene->numLightSamples);
         break;
     }
     integrator->setScene(scene);

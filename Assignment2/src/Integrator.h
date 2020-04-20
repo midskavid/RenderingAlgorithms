@@ -45,14 +45,16 @@ public:
 };
 
 class DirectIntegrator : public Integrator {
-    glm::vec3 computeShading(glm::vec3 incidentDirection, glm::vec3 toLight, glm::vec3 normal, glm::vec3 lightBrightness, const material_t& material);
-    std::vector<glm::vec2> GenerateUniformRandomSamples(int N);
-    std::vector<glm::vec2> GenerateStratifiedUniformRandomSamples(int N);
+    glm::vec3 computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, glm::vec3 nl, const material_t& material);
+    std::vector<glm::vec2> GenerateUniformRandomSamples();
 
 public :
+    DirectIntegrator(bool _stratify, int _num) : lightStratify(_stratify), numLightSamples(_num) { }
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
 
 private:
     std::random_device mRD;
-
+    bool lightStratify;
+    int numLightSamples;
+    
 };

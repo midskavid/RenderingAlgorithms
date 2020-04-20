@@ -49,7 +49,11 @@ struct quadLight_t {
     glm::vec3 _b;
     glm::vec3 _c;
     glm::vec3 _d;
+    glm::vec3 _ab;
+    glm::vec3 _ac;
     glm::vec3 _intensity;
+    glm::vec3 _normal;
+    float _area;
 };
 
 class Scene {
@@ -67,6 +71,9 @@ public:
     std::vector<pointLight_t> pointLights;
     std::vector<quadLight_t> quadLights;
     std::vector<material_t> quadMaterials;
+    bool lightStratify;
+    int numLightSamples;
+
     RTCScene embreeScene;
 
     bool castRay(
