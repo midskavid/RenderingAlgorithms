@@ -26,7 +26,12 @@ struct material_t {
     float shininess;
     glm::vec3 emission;
     glm::vec3 ambient;
+    bool isLightSource;
+    material_t() : isLightSource(false) { }
+    material_t(glm::vec3 _df, glm::vec3 _sp, float _sh, glm::vec3 _em, glm::vec3 _am) : 
+        diffuse(_df), specular(_sp), shininess(_sh), emission(_em), ambient(_am), isLightSource(false) { }
 };
+
 
 struct directionalLight_t {
     glm::vec3 toLight;
@@ -61,6 +66,7 @@ public:
     std::vector<directionalLight_t> directionalLights;
     std::vector<pointLight_t> pointLights;
     std::vector<quadLight_t> quadLights;
+    std::vector<material_t> quadMaterials;
     RTCScene embreeScene;
 
     bool castRay(

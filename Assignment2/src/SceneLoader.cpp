@@ -41,7 +41,7 @@ private:
     std::vector<quadLight_t> _quadLights;
     std::vector<glm::uvec4> _quadIndices;
     std::vector<glm::vec3> _quadVertices;
-
+    std::vector<material_t> _quadMaterials;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
@@ -218,6 +218,11 @@ void SceneLoader::executeCommand(
         _quadVertices.push_back(light._d);
 
         _quadLights.push_back(light);
+
+        material_t material;
+        material.emission = light._intensity;
+        material.isLightSource = true;
+        _quadMaterials.emplace_back(material);
     } else if (command == "attenuation") {
 
         _curAttenuation = loadVec3(arguments);
@@ -409,6 +414,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->directionalLights = std::move(_directionalLights);
     scene->pointLights = std::move(_pointLights);
     scene->quadLights = std::move(_quadLights);
+    scene->quadMaterials = std::move(_quadMaterials);
     scene->embreeScene = createEmbreeScene();
     integratorType = _integratorType;
     return scene;

@@ -43,7 +43,7 @@ bool Scene::castRay(
             *hitMaterial = sphereMaterials[sphereIndex];
         }
         else if (rayHit.hit.geomID == geometryID_t::kQuadLight){
-            int sphereIndex = rayHit.hit.instID[0] - 1;
+            *hitMaterial = quadMaterials[rayHit.hit.primID];
         }
         return true;
     } else {
