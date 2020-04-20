@@ -108,7 +108,10 @@ void SceneLoader::executeCommand(
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
-
+        else if (arguments[0] == "direct")
+            _integratorType = IntegratorType::kDirectIntegrator;
+        else
+            _integratorType = IntegratorType::kRayTracerIntegrator;
     } else if (command == "camera") {
 
         _cameraOrigin = loadVec3(arguments, 0);

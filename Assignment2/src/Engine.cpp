@@ -108,6 +108,9 @@ void render(const std::string& sceneFilePath)
     case IntegratorType::kAnalyticIntegrator:
         integrator = new AnalyticIntegrator;
         break;
+    case IntegratorType::kDirectIntegrator :
+        integrator = new DirectIntegrator;
+        break;
     }
     integrator->setScene(scene);
 

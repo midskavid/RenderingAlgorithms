@@ -1,7 +1,7 @@
 #include "Integrator.h"
 #include "Constants.h"
 
-glm::vec3 AnalyticIntegrator::computeShading(material_t material, const quadLight_t& light, glm::vec3 normal, glm::vec3 lightBrightness, const glm::vec3 posHit) {
+glm::vec3 AnalyticIntegrator::computeShading(const glm::vec3& posHit, const quadLight_t& light, glm::vec3 normal, glm::vec3 lightBrightness, const material_t& material) {
     glm::vec3 phiR {0,0,0};
 
     auto theta_1 = glm::acos(glm::dot(glm::normalize(light._a-posHit), glm::normalize(light._b-posHit)));
@@ -34,7 +34,7 @@ glm::vec3 AnalyticIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
         }
         else {
             for (const auto& light : _scene->quadLights) {
-                outputColor += computeShading(hitMaterial, light, hitNormal, light._intensity, hitPosition);
+                outputColor += computeShading(hitPosition, light, hitNormal, light._intensity, hitMaterial);
             }
         }
     }
