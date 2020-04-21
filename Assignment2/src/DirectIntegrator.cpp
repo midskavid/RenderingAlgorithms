@@ -8,7 +8,7 @@ glm::vec3 DirectIntegrator::computeShading(glm::vec3 reflectedDir, glm::vec3 wi,
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     auto n_wi = std::max(0.f,glm::dot(nr, wi));
-    auto nl_wi = std::max(0.f,glm::dot(nl, wi)); //TODO [mkaviday] check this
+    auto nl_wi = std::max(0.f,glm::dot(nl, wi));
     outColor = f_wi_wo*n_wi*nl_wi;
     return outColor;
 }

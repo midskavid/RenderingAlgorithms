@@ -115,8 +115,8 @@ void render(const std::string& sceneFilePath)
     integrator->setScene(scene);
 
     std::cout << "Preparing render jobs..." << std::endl;
-#pragma message("Remember to flip this!")
-#if 0
+
+#ifdef NDEBUG
     int numThreads = std::thread::hardware_concurrency();
 #else    
     int numThreads = 1;
