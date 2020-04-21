@@ -30,6 +30,7 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
             for (const auto& light : _scene->quadLights) {
                 // Generate Samples..
                 auto unifSamples = GenerateUniformRandomSamples();
+                glm::vec3 outputColor_ = glm::vec3(0.0f, 0.0f, 0.0f);
                 if (lightStratify) {
                     int rootN = sqrt(numLightSamples);
                     for (int ii=0;ii<rootN;++ii) {
@@ -42,7 +43,7 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
 
                             bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
                             if (!occluded) {
-                                outputColor += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
+                                outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
                             }
                         }
                     }
@@ -56,11 +57,11 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
 
                         bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
                         if (!occluded) {
-                            outputColor += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
+                            outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
                         }
                     }
                 }
-                outputColor = outputColor*(light._intensity*(light._area/numLightSamples));
+                outputColor += outputColor_*(light._intensity*(light._area/numLightSamples));
             }
         }
     }

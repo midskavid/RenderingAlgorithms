@@ -210,7 +210,7 @@ void SceneLoader::executeCommand(
         light._ab = loadVec3(arguments, 3);
         light._ac = loadVec3(arguments, 6);
         auto cross = glm::cross(light._ab, light._ac);
-        light._area = cross.length();
+        light._area = glm::length(cross);
         light._normal = glm::normalize(cross);
         light._b = light._ab + light._a;
         light._c = light._ac + light._a;
