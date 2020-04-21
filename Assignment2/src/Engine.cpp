@@ -115,9 +115,12 @@ void render(const std::string& sceneFilePath)
     integrator->setScene(scene);
 
     std::cout << "Preparing render jobs..." << std::endl;
-
-    //int numThreads = std::thread::hardware_concurrency();
+#pragma message("Remember to flip this!")
+#if 0
+    int numThreads = std::thread::hardware_concurrency();
+#else    
     int numThreads = 1;
+#endif
 
     std::vector<RenderJob*> jobs;
     for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {

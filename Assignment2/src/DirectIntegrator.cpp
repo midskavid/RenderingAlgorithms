@@ -8,7 +8,7 @@ glm::vec3 DirectIntegrator::computeShading(glm::vec3 reflectedDir, glm::vec3 wi,
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     auto n_wi = std::max(0.f,glm::dot(nr, wi));
-    auto nl_wi = std::abs(glm::dot(nl, wi)); //TODO [mkaviday] check this
+    auto nl_wi = std::max(0.f,glm::dot(nl, wi)); //TODO [mkaviday] check this
     outColor = f_wi_wo*n_wi*nl_wi;
     return outColor;
 }
@@ -26,12 +26,26 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
             outputColor = hitMaterial.emission;
         }
         else {
-            auto refl = direction - 2*glm::dot(hitNormal, direction)*hitNormal;
+            auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
             for (const auto& light : _scene->quadLights) {
                 // Generate Samples..
                 auto unifSamples = GenerateUniformRandomSamples();
                 if (lightStratify) {
+                    int rootN = sqrt(numLightSamples);
+                    for (int ii=0;ii<rootN;++ii) {
+                        for (int jj=0;jj<rootN;++jj) {
+                            auto idx = ii*rootN+jj;
+                            auto ltPt = light._a + float((jj+unifSamples[idx].x)/(rootN*1.0f))*light._ab + float((ii+unifSamples[idx].y)/(rootN*1.0f))*light._ac;
+                            glm::vec3 toLight = ltPt - hitPosition;
+                            float lightDistance = glm::length(toLight);
+                            toLight /= lightDistance;
 
+                            bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
+                            if (!occluded) {
+                                outputColor += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
+                            }
+                        }
+                    }
                 }
                 else {
                     for (int ii=0;ii<numLightSamples;++ii) {
