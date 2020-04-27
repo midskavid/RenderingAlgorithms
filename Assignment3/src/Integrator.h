@@ -52,9 +52,19 @@ public :
     DirectIntegrator(bool _stratify, int _num) : lightStratify(_stratify), numLightSamples(_num) { }
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
 
-private:
+private :
     std::random_device mRD;
     bool lightStratify;
     int numLightSamples;
     
+};
+
+class PathTracerIntegrator : public Integrator {
+    glm::vec3 computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, const material_t& material);
+    glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth);
+public :
+    PathTracerIntegrator() { }
+    glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
+private :
+    std::random_device mRD;
 };

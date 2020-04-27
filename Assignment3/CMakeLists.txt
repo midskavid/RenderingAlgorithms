@@ -32,6 +32,7 @@ set(LIB_SOURCES
     src/RayTracerIntegrator.cpp
     src/AnalyticIntegrator.cpp
     src/DirectIntegrator.cpp
+    src/PathTracerIntegrator.cpp
     src/lodepng/lodepng.cpp
 )
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
