@@ -20,13 +20,13 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
     glm::vec3 hitNormal;
     material_t hitMaterial;
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
+    hitNormal = glm::normalize(hitNormal);
     if (hit) {
         outputColor = hitMaterial.emission;
         auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
-        if (!hitMaterial.isLightSource && depth<=5) {
-            // sample w_i
-            glm::vec3 w_i;
-            outputColor += TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial)*traceRay(hitPosition, -w_i, depth+1);
+        if (!hitMaterial.isLightSource && depth<=mMaxDepth) {
+            glm::vec3 w_i = sampleW_I(hitNormal);
+            outputColor += TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial)*traceRay(hitPosition, w_i, depth+1);
         }
     }
     return outputColor;
@@ -34,4 +34,24 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
 
 glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
     return traceRay(origin, direction, 1);
+}
+
+glm::vec3 PathTracerIntegrator::sampleW_I(glm::vec3 nr) {
+    static thread_local std::mt19937 generator; // do I need mRD here?
+    std::uniform_real_distribution<float> distribution(0.0f,1.0f);
+    auto u1 = distribution(generator);
+    auto u2 = distribution(generator);
+
+    float theta = glm::acos(u1);
+    float phi = TWO_PI*u2;
+
+    glm::vec3 samp (glm::cos(phi)*glm::sin(theta), glm::sin(phi)*glm::sin(theta), glm::cos(theta)); 
+    auto w = nr;
+    glm::vec3 a(0,1,0);
+    if (glm::length(w-a) < 0.001f)
+        a = glm::vec3(1,0,0);
+    
+    auto u = glm::normalize(glm::cross(a,w));
+    auto v = glm::normalize(glm::cross(w,u));
+    return samp.x*u + samp.y*v + samp.z*w;
 }

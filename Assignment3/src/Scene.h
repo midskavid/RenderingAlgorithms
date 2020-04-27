@@ -62,6 +62,7 @@ public:
 
     glm::uvec2 imageSize;
     int maxDepth;
+    int spp;
     std::string outputFileName;
     camera_t camera;
     std::vector<glm::mat3> sphereNormalTransforms;

@@ -23,6 +23,7 @@ private:
     IntegratorType _integratorType = IntegratorType::kRayTracerIntegrator;
     glm::uvec2 _imageSize = glm::uvec2(1280, 720);
     int _maxDepth = 5;
+    int _spp = 1;
     std::string _outputFileName = "out.png";
     glm::vec3 _cameraOrigin = glm::vec3(-1.0f, 0.0f, 0.0f);
     glm::vec3 _cameraLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -103,10 +104,10 @@ void SceneLoader::executeCommand(
         _maxDepth = std::stoi(arguments[0]);
         if (_maxDepth == -1) _maxDepth = std::numeric_limits<int>::max();
 
+    } else if (command == "spp") {
+        _spp = std::stoi(arguments[0]);
     } else if (command == "output") {
-
         _outputFileName = arguments[0];
-
     } else if (command == "lightsamples") {
         _numLightSamples = std::stoi(arguments[0]);
     } else if (command == "lightstratify") {
@@ -116,6 +117,8 @@ void SceneLoader::executeCommand(
             _integratorType = IntegratorType::kAnalyticIntegrator;
         else if (arguments[0] == "direct")
             _integratorType = IntegratorType::kDirectIntegrator;
+        else if (arguments[0] == "pathtracer")
+            _integratorType = IntegratorType::kPathTracerIntegrator;
         else
             _integratorType = IntegratorType::kRayTracerIntegrator;
     } else if (command == "camera") {
@@ -418,6 +421,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     Scene* scene = new Scene();
     scene->imageSize = _imageSize;
     scene->maxDepth = _maxDepth;
+    scene->spp = _spp;
     scene->outputFileName = _outputFileName;
     scene->camera = camera;
     scene->sphereNormalTransforms = std::move(sphereNormalTransforms);

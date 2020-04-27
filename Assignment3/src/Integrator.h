@@ -8,7 +8,8 @@
 enum class IntegratorType {
     kRayTracerIntegrator,
     kAnalyticIntegrator,
-    kDirectIntegrator
+    kDirectIntegrator,
+    kPathTracerIntegrator
 };
 
 class Integrator {
@@ -62,9 +63,11 @@ private :
 class PathTracerIntegrator : public Integrator {
     glm::vec3 computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, const material_t& material);
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth);
+    glm::vec3 sampleW_I(glm::vec3 nr);
 public :
-    PathTracerIntegrator() { }
+    PathTracerIntegrator(int _depth) : mMaxDepth(_depth) { }
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
 private :
     std::random_device mRD;
+    int mMaxDepth;
 };

@@ -111,6 +111,9 @@ void render(const std::string& sceneFilePath)
     case IntegratorType::kDirectIntegrator :
         integrator = new DirectIntegrator(scene->lightStratify, scene->numLightSamples);
         break;
+    case IntegratorType::kPathTracerIntegrator :
+        integrator = new PathTracerIntegrator(scene->maxDepth);
+        break;
     }
     integrator->setScene(scene);
 
