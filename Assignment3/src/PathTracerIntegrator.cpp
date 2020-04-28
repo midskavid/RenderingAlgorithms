@@ -42,14 +42,14 @@ glm::vec3 PathTracerIntegrator::sampleW_I(glm::vec3 nr) {
     auto u1 = distribution(generator);
     auto u2 = distribution(generator);
 
-    float theta = glm::acos(u1);
+    float theta = std::acos(u1);
     float phi = TWO_PI*u2;
 
-    glm::vec3 samp (glm::cos(phi)*glm::sin(theta), glm::sin(phi)*glm::sin(theta), glm::cos(theta)); 
-    auto w = nr;
-    glm::vec3 a(0,1,0);
-    if (glm::length(w-a) < 0.001f)
-        a = glm::vec3(1,0,0);
+    glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta)); 
+    auto w = glm::normalize(nr);
+    glm::vec3 a(1,0,0);
+    if (glm::length(w-a) < 0.01f) 
+        a = glm::vec3(0,1,0);
     
     auto u = glm::normalize(glm::cross(a,w));
     auto v = glm::normalize(glm::cross(w,u));
