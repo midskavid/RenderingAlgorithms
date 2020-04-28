@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <iostream>
-
+#include <glm/gtx/norm.hpp>
 #include "Integrator.h"
 #include "Constants.h"
 
@@ -53,7 +53,8 @@ glm::vec3 PathTracerIntegrator::sampleW_I(glm::vec3 nr) {
     glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta)); 
     auto w = nr;
     glm::vec3 a(0,1,0);
-    if (glm::length(glm::cross(a,w))<0.01f)
+    //if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
+    if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
         a = glm::vec3(1,0,0);
 
     auto u = glm::normalize(glm::cross(a,w));
