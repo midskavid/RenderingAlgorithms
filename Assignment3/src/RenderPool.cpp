@@ -28,13 +28,12 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
             for (int ii=0;ii<rootN;++ii) {
                 for (int jj=0;jj<rootN;++jj) {
                     auto idx = ii*rootN+jj;
-                    //auto ltPt = light._a + float((jj+unifSamples[idx].x)/(rootN*1.0f))*light._ab + float((ii+unifSamples[idx].y)/(rootN*1.0f))*light._ac;
                     glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + float((jj+unifSamples[idx].x)/(rootN*1.0f))) * scene->camera.pixelRight + (y + float((ii+unifSamples[idx].y)/(rootN*1.0f))) * scene->camera.pixelDown;
                     glm::vec3 direction = glm::normalize(target - scene->camera.origin);
                     _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
                 }
             }
-            _result[wy * windowSize.x + wx] /= scene->spp;
+            _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
         }
     }
 }
