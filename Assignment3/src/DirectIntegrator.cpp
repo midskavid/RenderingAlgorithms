@@ -21,6 +21,7 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
     glm::vec3 hitNormal;
     material_t hitMaterial;
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
+    hitNormal = glm::normalize(hitNormal);
     if (hit) {
         if (hitMaterial.isLightSource) {
             outputColor = hitMaterial.emission;

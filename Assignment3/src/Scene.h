@@ -73,6 +73,7 @@ public:
     std::vector<quadLight_t> quadLights;
     std::vector<material_t> quadMaterials;
     bool lightStratify;
+    bool NEE;
     int numLightSamples;
 
     RTCScene embreeScene;

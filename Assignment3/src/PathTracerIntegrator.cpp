@@ -22,9 +22,12 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
     hitNormal = glm::normalize(hitNormal);
     if (hit) {
-        outputColor = hitMaterial.emission;
-        auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
+        if (_scene->NEE)
+            outputColor = mDirectInt.traceRay(origin, direction);
+        else 
+            outputColor = hitMaterial.emission;
         if (!hitMaterial.isLightSource && depth<=mMaxDepth) {
+            auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
             glm::vec3 w_i = sampleW_I(hitNormal);
             outputColor += TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial)*traceRay(hitPosition, w_i, depth+1);
         }
@@ -34,6 +37,7 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
 
 glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
     return traceRay(origin, direction, 1);
+    //return mDirectInt.traceRay(origin, direction);
 }
 
 glm::vec3 PathTracerIntegrator::sampleW_I(glm::vec3 nr) {

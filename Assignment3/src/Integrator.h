@@ -14,7 +14,7 @@ enum class IntegratorType {
 
 class Integrator {
 public:
-    void setScene(Scene* scene) {
+    virtual void setScene(Scene* scene) {
         _scene = scene;
     }
     void SetIntegrator(IntegratorType _type) {
@@ -65,9 +65,15 @@ class PathTracerIntegrator : public Integrator {
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth);
     glm::vec3 sampleW_I(glm::vec3 nr);
 public :
-    PathTracerIntegrator(int _depth) : mMaxDepth(_depth) { }
+    PathTracerIntegrator(int _depth, bool _stratify, int _num) : mMaxDepth(_depth), mDirectInt(_stratify, _num) { }
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
+    void setScene(Scene* scene) override {
+        _scene = scene;
+        mDirectInt.setScene(_scene);
+    }
+
 private :
     std::random_device mRD;
     int mMaxDepth;
+    DirectIntegrator mDirectInt;
 };

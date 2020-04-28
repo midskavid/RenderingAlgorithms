@@ -44,6 +44,7 @@ private:
     std::vector<glm::vec3> _quadVertices;
     std::vector<material_t> _quadMaterials;
     bool _lightStratify = false;
+    bool _NEE = false;
     int _numLightSamples = 1;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
@@ -112,6 +113,9 @@ void SceneLoader::executeCommand(
         _numLightSamples = std::stoi(arguments[0]);
     } else if (command == "lightstratify") {
         _lightStratify = true;
+    } else if (command == "nexteventestimation") {
+        if (arguments[0]== "on")
+            _NEE = true;
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
@@ -434,6 +438,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->embreeScene = createEmbreeScene();
     scene->numLightSamples = _numLightSamples;
     scene->lightStratify = _lightStratify;
+    scene->NEE = _NEE;
     integratorType = _integratorType;
     return scene;
 }
