@@ -45,6 +45,7 @@ private:
     std::vector<material_t> _quadMaterials;
     bool _lightStratify = false;
     bool _NEE = false;
+    bool _RR = false;
     int _numLightSamples = 1;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
@@ -116,6 +117,8 @@ void SceneLoader::executeCommand(
     } else if (command == "nexteventestimation") {
         if (arguments[0]== "on")
             _NEE = true;
+    } else if (command == "russianroulette") {
+        if (arguments[0]=="on") _RR = true;
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
@@ -439,6 +442,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->numLightSamples = _numLightSamples;
     scene->lightStratify = _lightStratify;
     scene->NEE = _NEE;
+    scene->RR = _RR;
     integratorType = _integratorType;
     return scene;
 }

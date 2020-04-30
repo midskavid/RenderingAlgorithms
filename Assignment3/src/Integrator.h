@@ -62,8 +62,9 @@ private :
 
 class PathTracerIntegrator : public Integrator {
     glm::vec3 computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, const material_t& material);
-    glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth);
+    glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth, glm::vec3 throughput);
     glm::vec3 sampleW_I(glm::vec3 nr);
+    float GetUniformRandom();
 public :
     PathTracerIntegrator(int _depth, bool _stratify, int _num) : mMaxDepth(_depth), mDirectInt(_stratify, _num) { }
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction) override;
