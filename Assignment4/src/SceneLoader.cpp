@@ -47,6 +47,7 @@ private:
     bool _NEE = false;
     bool _RR = false;
     int _numLightSamples = 1;
+    ImportanceSampling _importanceSampling = ImportanceSampling::kHemisphere;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
@@ -119,7 +120,14 @@ void SceneLoader::executeCommand(
             _NEE = true;
     } else if (command == "russianroulette") {
         if (arguments[0]=="on") _RR = true;
-    } else if (command == "integrator") {
+    } else if (command == "importancesampling") {
+        if (arguments[0]=="cosine")
+            _importanceSampling = ImportanceSampling::kCosine;
+        else if (arguments[0]=="brdf")
+            _importanceSampling = ImportanceSampling::kBRDF;
+    } 
+    
+    else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
         else if (arguments[0] == "direct")
@@ -443,6 +451,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->lightStratify = _lightStratify;
     scene->NEE = _NEE;
     scene->RR = _RR;
+    scene->importanceSampling = _importanceSampling;
     integratorType = _integratorType;
     return scene;
 }

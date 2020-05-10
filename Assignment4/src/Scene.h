@@ -56,6 +56,12 @@ struct quadLight_t {
     float _area;
 };
 
+enum class ImportanceSampling {
+    kHemisphere,
+    kCosine,
+    kBRDF
+};
+
 class Scene {
 
 public:
@@ -76,7 +82,7 @@ public:
     bool NEE;
     bool RR;
     int numLightSamples;
-
+    ImportanceSampling importanceSampling;
     RTCScene embreeScene;
 
     bool castRay(

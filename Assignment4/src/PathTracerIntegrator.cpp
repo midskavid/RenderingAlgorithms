@@ -8,8 +8,13 @@
 glm::vec3 PathTracerIntegrator::computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, const material_t& material) {
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
-    auto n_wi = std::max(0.f,glm::dot(nr, wi));
-    outColor = f_wi_wo*n_wi;
+    
+    outColor = f_wi_wo;
+    if (_scene->importanceSampling==ImportanceSampling::kHemisphere) {
+        auto n_wi = std::max(0.f,glm::dot(nr, wi));
+        outColor *= n_wi;
+    }
+
     return outColor;
 }
 
@@ -35,8 +40,23 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
                 if (GetUniformRandom()<q) return outputColor;
             }
             auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
-            glm::vec3 w_i = sampleW_I(hitNormal);
-            glm::vec3 newThroughput = TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial);
+            glm::vec3 w_i;
+            glm::vec3 newThroughput;
+            switch (_scene->importanceSampling)
+            {
+            case ImportanceSampling::kHemisphere:                
+                w_i = sampleHemisphereW_I(hitNormal);
+                newThroughput = TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial);
+                break;
+            case ImportanceSampling::kCosine:                
+                w_i = sampleCosineW_I(hitNormal);
+                newThroughput = PI*computeShading(refl, w_i, hitNormal, hitMaterial);
+                break;
+            case ImportanceSampling::kBRDF:
+                break;
+            }
+             
+            
             newThroughput *= (1.0f/(1.0f-q));
             outputColor += newThroughput*traceRay(hitPosition, w_i, depth+1, newThroughput);
         }
@@ -54,11 +74,31 @@ float PathTracerIntegrator::GetUniformRandom() {
     return distribution(generator);
 }
 
-glm::vec3 PathTracerIntegrator::sampleW_I(glm::vec3 nr) {
+glm::vec3 PathTracerIntegrator::sampleHemisphereW_I(glm::vec3 nr) {
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();
 
     float theta = std::acos(u1);
+    float phi = TWO_PI*u2;
+
+    glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta)); 
+    auto w = nr;
+    glm::vec3 a(0,1,0);
+    //if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
+    if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
+        a = glm::vec3(1,0,0);
+
+    auto u = glm::normalize(glm::cross(a,w));
+    auto v = glm::normalize(glm::cross(w,u));
+    auto w_i =  samp.x*u + samp.y*v + samp.z*w;
+    return w_i;
+}
+
+glm::vec3 PathTracerIntegrator::sampleCosineW_I(glm::vec3 nr) {
+    auto u1 = GetUniformRandom();
+    auto u2 = GetUniformRandom();
+
+    float theta = std::acos(sqrt(u1));
     float phi = TWO_PI*u2;
 
     glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta)); 
