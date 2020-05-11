@@ -24,12 +24,13 @@ struct material_t {
     glm::vec3 diffuse;
     glm::vec3 specular;
     float shininess;
+    float alpha;
     glm::vec3 emission;
     glm::vec3 ambient;
     bool isLightSource;
     material_t() : isLightSource(false) { }
-    material_t(glm::vec3 _df, glm::vec3 _sp, float _sh, glm::vec3 _em, glm::vec3 _am) : 
-        diffuse(_df), specular(_sp), shininess(_sh), emission(_em), ambient(_am), isLightSource(false) { }
+    material_t(glm::vec3 _df, glm::vec3 _sp, float _sh, float _al, glm::vec3 _em, glm::vec3 _am) : 
+        diffuse(_df), specular(_sp), shininess(_sh), alpha(_al), emission(_em), ambient(_am), isLightSource(false) { }
 };
 
 

@@ -10,7 +10,7 @@ glm::vec3 PathTracerIntegrator::computeShading(glm::vec3 reflectedDir, glm::vec3
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     
     outColor = f_wi_wo;
-    if (_scene->importanceSampling!=ImportanceSampling::kCosine) {
+    if (1||_scene->importanceSampling!=ImportanceSampling::kCosine) {
         auto n_wi = std::max(0.f,glm::dot(nr, wi));
         outColor *= n_wi;
     }
@@ -53,10 +53,14 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
                 w_i = sampleHemisphereW_I(hitNormal);
                 newThroughput = TWO_PI*computeShading(refl, w_i, hitNormal, hitMaterial);
                 break;
-            case ImportanceSampling::kCosine:                
+            case ImportanceSampling::kCosine: 
+            {               
                 w_i = sampleCosineW_I(hitNormal);
                 newThroughput = PI*computeShading(refl, w_i, hitNormal, hitMaterial);
+                auto deno = std::max(0.f,glm::dot(hitNormal, w_i));
+                if (deno !=0) newThroughput /= deno;
                 break;
+            }
             case ImportanceSampling::kBRDF:
                 float kdBar = (hitMaterial.diffuse.r + hitMaterial.diffuse.g + hitMaterial.diffuse.b)/3.0f;
                 float ksBar = (hitMaterial.specular.r + hitMaterial.specular.g + hitMaterial.specular.b)/3.0f;
