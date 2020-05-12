@@ -7,7 +7,7 @@ float BRDF::GetUniformRandom() {
     return distribution(generator);
 }
 
-glm::vec3 BRDF::SampleHemisphereW_I(glm::vec3 nr) {
+glm::vec3 BRDF::SampleHemisphereW_I(const glm::vec3& nr) {
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();
 
@@ -27,7 +27,7 @@ glm::vec3 BRDF::SampleHemisphereW_I(glm::vec3 nr) {
     return w_i;
 }
 
-glm::vec3 BRDF::SampleCosineW_I(glm::vec3 nr) {
+glm::vec3 BRDF::SampleCosineW_I(const glm::vec3& nr) {
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();
 

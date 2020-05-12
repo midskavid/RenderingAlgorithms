@@ -1,15 +1,21 @@
 #include "BRDF.h"
 
-glm::vec3 PhongBRDF::Sample_BRDFWi(glm::vec3 nr, glm::vec3 refl, float t, float s) {
+glm::vec3 PhongBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     auto u0 = GetUniformRandom();
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();
     float theta = 0;
+
+    float kdBar = (material.diffuse.r + material.diffuse.g + material.diffuse.b)/3.0f;
+    float ksBar = (material.specular.r + material.specular.g + material.specular.b)/3.0f;
+    float t = ksBar/(ksBar+kdBar);
+
+
     glm::vec3 w;
 
     if (u0<=t) {
-        theta = std::acos(std::pow(u1, 1.0f/(1.0f+s)));
-        w = refl;
+        theta = std::acos(std::pow(u1, 1.0f/(1.0f+material.shininess)));
+        w = reflectedDir;
     }
     else {
         theta = std::acos(sqrt(u1));
@@ -30,12 +36,16 @@ glm::vec3 PhongBRDF::Sample_BRDFWi(glm::vec3 nr, glm::vec3 refl, float t, float 
     return w_i;
 }
 
-float PhongBRDF::ComputePDF(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 wo, glm::vec3 nr, float t, const material_t& material) {
+float PhongBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    float kdBar = (material.diffuse.r + material.diffuse.g + material.diffuse.b)/3.0f;
+    float ksBar = (material.specular.r + material.specular.g + material.specular.b)/3.0f;
+    float t = ksBar/(ksBar+kdBar);
+    
     auto pdf = (1.0f-t)*(std::max(0.f,glm::dot(nr, wi)))*INV_PI + t*(material.shininess+1.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     return pdf;
 }
 
-glm::vec3 PhongBRDF::ComputeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 wo, glm::vec3 nr, const material_t& material) {
+glm::vec3 PhongBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     
