@@ -16,7 +16,7 @@ public :
     virtual glm::vec3 ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) = 0;
     glm::vec3 SampleHemisphereW_I(const glm::vec3& nr);
     glm::vec3 SampleCosineW_I(const glm::vec3& nr);
-
+    virtual ~BRDF() { }
 protected :
     float GetUniformRandom();
 
@@ -30,7 +30,7 @@ public :
     glm::vec3 Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
     float ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
     glm::vec3 ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
-
+    virtual ~PhongBRDF() { }
 };
 
 class GGXBRDF : public BRDF {
@@ -41,7 +41,7 @@ public :
     glm::vec3 Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
     float ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
     glm::vec3 ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) override;
-    
+    virtual ~GGXBRDF() { }
 };
 
 #endif // BRDF_H

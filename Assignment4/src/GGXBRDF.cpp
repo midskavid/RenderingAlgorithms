@@ -17,6 +17,7 @@ glm::vec3 GGXBRDF::F(glm::vec3 ks, glm::vec3 w, glm::vec3 h) {
 }
 
 glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(reflectedDir);
     auto diffuse = material.diffuse*INV_PI;
     glm::vec3 specular {0,0,0};
 
@@ -36,12 +37,13 @@ glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3&
 }
 
 float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(reflectedDir);
     float kdBar = (material.diffuse.r + material.diffuse.g + material.diffuse.b)/3.0f;
     float ksBar = (material.specular.r + material.specular.g + material.specular.b)/3.0f;
     float t = std::max(0.25f,ksBar/(ksBar+kdBar));
 
-    auto wi_n = glm::dot(wi, nr);
-    auto wo_n = glm::dot(wo, nr);
+    // auto wi_n = glm::dot(wi, nr);
+    // auto wo_n = glm::dot(wo, nr);
     auto h = glm::normalize(wi+wo);
     auto h_nr = glm::dot(h, nr);
     auto theta_h = std::acos(h_nr);
@@ -55,6 +57,8 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
 
 
 glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(wi);
+    UNUSED(reflectedDir);
     auto u0 = GetUniformRandom();
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();

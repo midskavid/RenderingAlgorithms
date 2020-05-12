@@ -63,6 +63,8 @@ enum class ImportanceSampling {
     kBRDF
 };
 
+class BRDF;
+
 class Scene {
 
 public:
@@ -85,7 +87,7 @@ public:
     int numLightSamples;
     ImportanceSampling importanceSampling;
     RTCScene embreeScene;
-
+    BRDF* brdf;
     bool castRay(
         glm::vec3 origin,
         glm::vec3 direction,

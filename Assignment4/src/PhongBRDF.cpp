@@ -1,6 +1,8 @@
 #include "BRDF.h"
 
 glm::vec3 PhongBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(wi);
+    UNUSED(wo);
     auto u0 = GetUniformRandom();
     auto u1 = GetUniformRandom();
     auto u2 = GetUniformRandom();
@@ -37,6 +39,7 @@ glm::vec3 PhongBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3
 }
 
 float PhongBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(wo);
     float kdBar = (material.diffuse.r + material.diffuse.g + material.diffuse.b)/3.0f;
     float ksBar = (material.specular.r + material.specular.g + material.specular.b)/3.0f;
     float t = ksBar/(ksBar+kdBar);
@@ -46,6 +49,7 @@ float PhongBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,co
 }
 
 glm::vec3 PhongBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    UNUSED(wo);
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     

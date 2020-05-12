@@ -33,6 +33,9 @@ set(LIB_SOURCES
     src/AnalyticIntegrator.cpp
     src/DirectIntegrator.cpp
     src/PathTracerIntegrator.cpp
+    src/BRDF.cpp
+    src/PhongBRDF.cpp
+    src/GGXBRDF.cpp
     src/lodepng/lodepng.cpp
 )
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)

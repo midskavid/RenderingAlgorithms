@@ -12,7 +12,7 @@
 
 #include "Constants.h"
 #include "Scene.h"
-
+#include "BRDF.h"
 #include "SceneLoader.h"
 
 class SceneLoader {
@@ -47,12 +47,15 @@ private:
     bool _NEE = false;
     bool _RR = false;
     int _numLightSamples = 1;
+    BRDF* _brdf = new PhongBRDF;
+
     ImportanceSampling _importanceSampling = ImportanceSampling::kHemisphere;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     material_t _curMaterial = {
         glm::vec3(0.0f),  // diffuse
         glm::vec3(0.0f),  // specular
         1.0f,  // shininess
+        1.0f, // roughness
         glm::vec3(0.0f),  // emission
         glm::vec3(0.2f, 0.2f, 0.2f)  // ambient
     };
@@ -125,9 +128,12 @@ void SceneLoader::executeCommand(
             _importanceSampling = ImportanceSampling::kCosine;
         else if (arguments[0]=="brdf")
             _importanceSampling = ImportanceSampling::kBRDF;
-    } 
-    
-    else if (command == "integrator") {
+    } else if (command =="brdf") {
+        if (arguments[0]=="ggx") {
+            delete _brdf;
+            _brdf = new GGXBRDF;
+        }
+    } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
             _integratorType = IntegratorType::kAnalyticIntegrator;
         else if (arguments[0] == "direct")
@@ -272,6 +278,10 @@ void SceneLoader::executeCommand(
     } else if (command == "shininess") {
 
         _curMaterial.shininess = std::stof(arguments[0]);
+
+    } else if (command =="roughness") {
+
+        _curMaterial.alpha = std::stof(arguments[0]);
 
     } else if (command == "emission") {
 
@@ -452,6 +462,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->NEE = _NEE;
     scene->RR = _RR;
     scene->importanceSampling = _importanceSampling;
+    scene->brdf = _brdf;
     integratorType = _integratorType;
     return scene;
 }
