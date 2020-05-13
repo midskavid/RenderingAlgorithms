@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Debug/rt168",
-            "args": ["../../Scenes/hw3/cornellNEE.test"],
+            "args": ["../../Scenes/hw4/ggx1.test"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Debug/",
             "environment": [],

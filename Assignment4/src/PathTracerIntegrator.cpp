@@ -29,6 +29,7 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
             auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
             glm::vec3 w_i;
             glm::vec3 newThroughput;
+            direction = -direction;
             switch (_scene->importanceSampling)
             {
             case ImportanceSampling::kHemisphere:                

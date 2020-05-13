@@ -1,7 +1,7 @@
 #include "BRDF.h"
 
 float GGXBRDF::D_H(float theta_h, float alpha) {
-    return alpha*alpha/(PI* std::pow(std::cos(theta_h),4)*(alpha*alpha + std::pow(std::tan(theta_h),2)));
+    return (alpha*alpha)/(PI* std::pow(std::cos(theta_h),4)*std::pow((alpha*alpha + std::pow(std::tan(theta_h),2)),2));
 }
 
 float GGXBRDF::G1_V(glm::vec3 w, glm::vec3 nr, float alpha) {
@@ -24,7 +24,7 @@ glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3&
     auto wi_n = glm::dot(wi, nr);
     auto wo_n = glm::dot(wo, nr);
 
-    if (wi_n>0&&wo_n>0) {
+    if ((wi_n>0)&&(wo_n>0)) {
         auto h = glm::normalize(wi+wo);
         auto theta_h = std::acos(glm::dot(h, nr));
         auto dh = D_H(theta_h, material.alpha);
@@ -33,6 +33,7 @@ glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3&
 
         specular = (f_wi_h*g_wi_wo*dh) / (4.0f*wi_n*wo_n);
     }
+    
     return diffuse + specular;
 }
 
@@ -54,7 +55,6 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
 
     return pdf;
 }
-
 
 glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     UNUSED(wi);

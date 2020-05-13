@@ -3,6 +3,7 @@
 
 #include "Integrator.h"
 #include "Constants.h"
+#include "BRDF.h"
 
 glm::vec3 DirectIntegrator::computeShading(glm::vec3 reflectedDir, glm::vec3 wi, glm::vec3 nr, glm::vec3 nl, const material_t& material) {
     glm::vec3 outColor{0,0,0};
@@ -22,12 +23,14 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
     material_t hitMaterial;
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
     hitNormal = glm::normalize(hitNormal);
+    BRDF* _brdf = _scene->brdf;
     if (hit) {
         if (hitMaterial.isLightSource) {
             outputColor = hitMaterial.emission;
         }
         else {
             auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
+            direction = -direction;
             for (const auto& light : _scene->quadLights) {
                 // Generate Samples..
                 auto unifSamples = GenerateUniformRandomSamples();
@@ -44,7 +47,10 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
 
                             bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
                             if (!occluded) {
-                                outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
+                                auto n_wi = std::max(0.f,glm::dot(hitNormal, toLight));
+                                auto nl_wi = std::max(0.f,glm::dot(light._normal, toLight));
+                                outputColor_ += (_brdf->ComputeShading(refl, toLight, direction, hitNormal, hitMaterial)*n_wi*nl_wi)/(lightDistance*lightDistance);
+                                //outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
                             }
                         }
                     }
@@ -58,7 +64,11 @@ glm::vec3 DirectIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
 
                         bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
                         if (!occluded) {
-                            outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
+                            auto n_wi = std::max(0.f,glm::dot(hitNormal, toLight));
+                            auto nl_wi = std::max(0.f,glm::dot(light._normal, toLight));
+                            outputColor_ += (_brdf->ComputeShading(refl, toLight, direction, hitNormal, hitMaterial)*n_wi*nl_wi)/(lightDistance*lightDistance);
+
+                            //outputColor_ += (computeShading(refl, toLight, hitNormal, light._normal, hitMaterial))/(lightDistance*lightDistance);
                         }
                     }
                 }
