@@ -48,7 +48,8 @@ private:
     bool _RR = false;
     int _numLightSamples = 1;
     float _gamma = 1.0f;
-    BRDF* _brdf = new PhongBRDF;
+    BRDF* _brdfPhong = new PhongBRDF;
+    BRDF* _brdfGGX = new GGXBRDF;
 
     ImportanceSampling _importanceSampling = ImportanceSampling::kHemisphere;
     glm::vec3 _curAttenuation = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -58,7 +59,8 @@ private:
         1.0f,  // shininess
         1.0f, // roughness
         glm::vec3(0.0f),  // emission
-        glm::vec3(0.2f, 0.2f, 0.2f)  // ambient
+        glm::vec3(0.2f, 0.2f, 0.2f),  // ambient
+        _brdfPhong
     };
 
 public:
@@ -133,8 +135,10 @@ void SceneLoader::executeCommand(
             _importanceSampling = ImportanceSampling::kBRDF;
     } else if (command =="brdf") {
         if (arguments[0]=="ggx") {
-            delete _brdf;
-            _brdf = new GGXBRDF;
+            _curMaterial.brdf = _brdfGGX;
+        }
+        else if (arguments[0]=="phong") {
+            _curMaterial.brdf = _brdfGGX;
         }
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
@@ -468,7 +472,6 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->NEE = _NEE;
     scene->RR = _RR;
     scene->importanceSampling = _importanceSampling;
-    scene->brdf = _brdf;
     scene->gamma = _gamma;
     integratorType = _integratorType;
     return scene;

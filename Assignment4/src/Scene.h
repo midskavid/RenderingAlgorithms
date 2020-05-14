@@ -14,6 +14,13 @@ enum geometryID_t {
     
 };
 
+class BRDF;
+
+// enum class BRDFType {
+//     kPhong,
+//     KGGX
+// };
+
 struct camera_t {
     glm::vec3 origin;
     glm::vec3 imagePlaneTopLeft;
@@ -29,9 +36,10 @@ struct material_t {
     glm::vec3 emission;
     glm::vec3 ambient;
     bool isLightSource;
-    material_t() : isLightSource(false) { }
-    material_t(glm::vec3 _df, glm::vec3 _sp, float _sh, float _al, glm::vec3 _em, glm::vec3 _am) : 
-        diffuse(_df), specular(_sp), shininess(_sh), alpha(_al), emission(_em), ambient(_am), isLightSource(false) { }
+    BRDF* brdf;
+    material_t() : isLightSource(false), brdf(nullptr) { }
+    material_t(glm::vec3 _df, glm::vec3 _sp, float _sh, float _al, glm::vec3 _em, glm::vec3 _am, BRDF* _brdf) : 
+        diffuse(_df), specular(_sp), shininess(_sh), alpha(_al), emission(_em), ambient(_am), isLightSource(false), brdf(_brdf) { }
 };
 
 
@@ -64,7 +72,7 @@ enum class ImportanceSampling {
     kBRDF
 };
 
-class BRDF;
+
 
 class Scene {
 
@@ -89,7 +97,7 @@ public:
     float gamma;
     ImportanceSampling importanceSampling;
     RTCScene embreeScene;
-    BRDF* brdf;
+    
     bool castRay(
         glm::vec3 origin,
         glm::vec3 direction,

@@ -7,12 +7,13 @@
 
 glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, int depth, glm::vec3 throughput) {
     glm::vec3 outputColor = glm::vec3(0.0f, 0.0f, 0.0f);
-    BRDF* _brdf = _scene->brdf;
+    
     glm::vec3 hitPosition;
     glm::vec3 hitNormal;
     material_t hitMaterial;
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
     hitNormal = glm::normalize(hitNormal);
+    BRDF* _brdf = hitMaterial.brdf;
     if (hit) {
         if (_scene->NEE) {
             if (depth>1 && hitMaterial.isLightSource) return outputColor;
