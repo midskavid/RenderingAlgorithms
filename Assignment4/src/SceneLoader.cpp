@@ -419,8 +419,9 @@ RTCScene SceneLoader::createEmbreeScene()
     RTCScene embreeScene = rtcNewScene(_embreeDevice);
     
     loadEmbreeTriangles(embreeScene);
-    loadEmbreeSpheres(embreeScene);
     loadEmbreeQuadLights(embreeScene);
+    loadEmbreeSpheres(embreeScene);
+    
     
     rtcCommitScene(embreeScene);
     return embreeScene;

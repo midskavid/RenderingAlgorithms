@@ -9,8 +9,9 @@
 
 enum geometryID_t {
     kTriangle,
-    kSphere,
-    kQuadLight
+    kQuadLight,
+    kSphere
+    
 };
 
 struct camera_t {

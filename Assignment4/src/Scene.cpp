@@ -37,13 +37,13 @@ bool Scene::castRay(
         if (rayHit.hit.geomID == geometryID_t::kTriangle) {
             *hitMaterial = triMaterials[rayHit.hit.primID];
         } 
-        else if (rayHit.hit.geomID == geometryID_t::kSphere){
-            int sphereIndex = rayHit.hit.instID[0] - 1;
-            *hitNormal = glm::normalize(sphereNormalTransforms[sphereIndex] * (*hitNormal));
-            *hitMaterial = sphereMaterials[sphereIndex];
-        }
         else if (rayHit.hit.geomID == geometryID_t::kQuadLight){
             *hitMaterial = quadMaterials[rayHit.hit.primID];
+        }
+        else {
+            int sphereIndex = rayHit.hit.instID[0]-2;
+            *hitNormal = glm::normalize(sphereNormalTransforms[sphereIndex] * (*hitNormal));
+            *hitMaterial = sphereMaterials[sphereIndex];
         }
         return true;
     } else {
