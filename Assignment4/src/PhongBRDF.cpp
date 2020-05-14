@@ -50,6 +50,7 @@ float PhongBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,co
 
 glm::vec3 PhongBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     UNUSED(wo);
+    UNUSED(nr);
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
     return f_wi_wo;

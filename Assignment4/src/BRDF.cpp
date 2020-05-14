@@ -1,7 +1,6 @@
 #include "BRDF.h"
 
 float BRDF::GetUniformRandom() {
-#pragma message("Check this")
     static thread_local std::mt19937 generator; // do I need mRD here?
     std::uniform_real_distribution<float> distribution(0.0f,1.0f);
     return distribution(generator);
