@@ -32,22 +32,30 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
             direction = -direction;
             switch (_scene->importanceSampling)
             {
-            case ImportanceSampling::kHemisphere:                
+            case ImportanceSampling::kHemisphere:  
+            {              
                 w_i = _brdf->SampleHemisphereW_I(hitNormal);
-                newThroughput = TWO_PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
+                auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+                newThroughput = TWO_PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial)*n_wi;
                 break;
+            }
             case ImportanceSampling::kCosine: 
             {   
-                w_i = _brdf->SampleCosineW_I(hitNormal);          
-                newThroughput = PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
+                w_i = _brdf->SampleCosineW_I(hitNormal);  
+                auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));        
+                newThroughput = PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial)*n_wi;
                 break;
             }
             case ImportanceSampling::kBRDF:
+            {
                 w_i = _brdf->Sample_BRDFWi(refl, w_i, direction, hitNormal, hitMaterial);
                 auto shading = _brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
                 float pdf = _brdf->ComputePDF(refl, w_i, direction, hitNormal, hitMaterial);
-                newThroughput = shading/pdf; 
+                auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+                newThroughput = shading*n_wi/pdf; 
+                //std::cout<<newThroughput.x<<" "<<newThroughput.y<<" "<<newThroughput.z<<std::endl;
                 break;
+            }
             }
              
             
@@ -55,6 +63,7 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
             outputColor += newThroughput*traceRay(hitPosition, w_i, depth+1, newThroughput);
         }
     }
+    //std::cout<<outputColor.x<<" "<<outputColor.y<<" "<<outputColor.z<<std::endl;
     return outputColor;
 }
 

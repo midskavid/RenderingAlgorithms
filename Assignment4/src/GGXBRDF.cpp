@@ -56,7 +56,7 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
 
     return pdf;
 }
-
+#include <iostream>
 glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     UNUSED(wi);
     UNUSED(reflectedDir);
@@ -70,6 +70,7 @@ glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& 
 
     
     if (u0<=t) { //specular
+        std::cout<<"SPec\n";
         float phi = TWO_PI*u2;
         float theta = std::atan((material.alpha*sqrt(u1))/(sqrt(1.0f-u1)));
         glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
@@ -82,7 +83,7 @@ glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& 
         auto u = glm::normalize(glm::cross(a,w));
         auto v = glm::normalize(glm::cross(w,u));
         auto h_i =  samp.x*u + samp.y*v + samp.z*w;
-        auto w_i = glm::normalize(wo - 2*glm::dot(h_i, wo)*h_i);
+        auto w_i = glm::normalize(-wo - 2*glm::dot(h_i, -wo)*h_i);
         return w_i;
     }
     else {
