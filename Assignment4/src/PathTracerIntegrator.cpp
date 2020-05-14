@@ -42,9 +42,8 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
             }
             case ImportanceSampling::kCosine: 
             {   
-                w_i = _brdf->SampleCosineW_I(hitNormal);  
-                auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));        
-                newThroughput = PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial)*n_wi;
+                w_i = _brdf->SampleCosineW_I(hitNormal);         
+                newThroughput = PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
                 break;
             }
             case ImportanceSampling::kBRDF:
