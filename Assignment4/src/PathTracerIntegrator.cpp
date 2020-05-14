@@ -64,6 +64,9 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
         }
     }
     //std::cout<<outputColor.x<<" "<<outputColor.y<<" "<<outputColor.z<<std::endl;
+    // if (std::isnan(outputColor.x)||std::isnan(outputColor.y)||std::isnan(outputColor.z))
+    //     std::cout<<"JHOL\n";
+
     return outputColor;
 }
 

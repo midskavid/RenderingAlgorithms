@@ -26,12 +26,15 @@ glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3&
 
     if ((wi_n>0)&&(wo_n>0)) {
         auto h = glm::normalize(wi+wo);
-        auto theta_h = std::acos(glm::dot(h, nr));
+        auto h_nr = glm::dot(h, nr);
+        if (h_nr>1.0f) h_nr = 1.0f;
+        auto theta_h = glm::acos(h_nr);
         auto dh = D_H(theta_h, material.alpha);
         auto g_wi_wo = G1_V(wi, nr, material.alpha)*G1_V(wo, nr, material.alpha);
         auto f_wi_h = F(material.specular, wi, h); 
 
         specular = (f_wi_h*g_wi_wo*dh) / (4.0f*wi_n*wo_n);
+
     }
     
     return diffuse + specular;
@@ -47,6 +50,7 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
     // auto wo_n = glm::dot(wo, nr);
     auto h = glm::normalize(wi+wo);
     auto h_nr = glm::dot(h, nr);
+    if (h_nr>1.0f) h_nr = 1.0f;
     auto theta_h = std::acos(h_nr);
     auto h_wi = glm::dot(h,wi);
     //auto pdf = (1.0f-t)*(std::max(0.f,glm::dot(nr, wi)))*INV_PI;
