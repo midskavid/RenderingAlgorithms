@@ -160,7 +160,7 @@ void render(const std::string& sceneFilePath)
                     unsigned int y = job->startPixel.y + wy;
                     for (unsigned int wx = 0; wx < job->windowSize.x; wx++) {
                         unsigned int x = job->startPixel.x + wx;
-                        imageData[y * scene->imageSize.x + x] = result[wy * job->windowSize.x + wx];
+                        imageData[y * scene->imageSize.x + x] = glm::vec3(std::pow(result[wy * job->windowSize.x + wx].x,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].y,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].z,1.0f/scene->gamma));
                     }
                 }
             }

@@ -52,10 +52,5 @@ glm::vec3 PhongBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec
     UNUSED(wo);
     glm::vec3 outColor{0,0,0};
     auto f_wi_wo = material.diffuse*INV_PI + material.specular*(material.shininess+2.0f)*INV_TWO_PI*float(pow(std::max(0.f,glm::dot(reflectedDir, wi)),material.shininess));
-    
-    outColor = f_wi_wo;
-    auto n_wi = std::max(0.f,glm::dot(nr, wi));
-    outColor *= n_wi;
-
-    return outColor;
+    return f_wi_wo;
 }

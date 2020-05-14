@@ -49,9 +49,10 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
     auto h_nr = glm::dot(h, nr);
     auto theta_h = std::acos(h_nr);
     auto h_wi = glm::dot(h,wi);
-    auto pdf = (1.0f-t)*(std::max(0.f,glm::dot(nr, wi)))*INV_PI;
-    if (h_wi>0)
-        pdf += t*D_H(theta_h, material.alpha)*h_nr/(4.0f*h_wi);
+    //auto pdf = (1.0f-t)*(std::max(0.f,glm::dot(nr, wi)))*INV_PI;
+    auto pdf = (1.0f-t)*(glm::dot(nr, wi))*INV_PI;
+    if (h_wi!=0)
+        pdf += (t*D_H(theta_h, material.alpha)*h_nr)/(4.0f*h_wi);
 
     return pdf;
 }
@@ -68,14 +69,14 @@ glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& 
     float t = std::max(0.25f,ksBar/(ksBar+kdBar));
 
     
-    if (u0<t) { //specular
+    if (u0<=t) { //specular
         float phi = TWO_PI*u2;
-        float theta = std::atan(material.alpha*sqrt(u1)/(sqrt(1-u1)));
+        float theta = std::atan((material.alpha*sqrt(u1))/(sqrt(1.0f-u1)));
         glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
         auto w = nr;
         glm::vec3 a(0,1,0);
-        //if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
-        if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
+        if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
+        //if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
             a = glm::vec3(1,0,0);
 
         auto u = glm::normalize(glm::cross(a,w));
@@ -91,8 +92,8 @@ glm::vec3 GGXBRDF::Sample_BRDFWi(const glm::vec3& reflectedDir,const glm::vec3& 
 
         glm::vec3 samp (cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta)); 
         glm::vec3 a(0,1,0);
-        //if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
-        if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
+        if (glm::length(glm::cross(a,w))<0.01f) //Expensive??
+        //if (glm::length2(w-a)<0.01f||glm::length2(-w-a)<0.01f)
             a = glm::vec3(1,0,0);
 
         auto u = glm::normalize(glm::cross(a,w));

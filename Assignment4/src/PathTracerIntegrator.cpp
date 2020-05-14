@@ -40,8 +40,6 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
             {   
                 w_i = _brdf->SampleCosineW_I(hitNormal);          
                 newThroughput = PI*_brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
-                auto deno = std::max(0.f,glm::dot(hitNormal, w_i));
-                if (deno !=0) newThroughput /= deno;
                 break;
             }
             case ImportanceSampling::kBRDF:

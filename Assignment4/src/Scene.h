@@ -85,6 +85,7 @@ public:
     bool NEE;
     bool RR;
     int numLightSamples;
+    float gamma;
     ImportanceSampling importanceSampling;
     RTCScene embreeScene;
     BRDF* brdf;

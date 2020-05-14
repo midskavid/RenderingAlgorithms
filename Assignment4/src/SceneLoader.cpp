@@ -47,6 +47,7 @@ private:
     bool _NEE = false;
     bool _RR = false;
     int _numLightSamples = 1;
+    float _gamma = 1.0f;
     BRDF* _brdf = new PhongBRDF;
 
     ImportanceSampling _importanceSampling = ImportanceSampling::kHemisphere;
@@ -123,6 +124,8 @@ void SceneLoader::executeCommand(
             _NEE = true;
     } else if (command == "russianroulette") {
         if (arguments[0]=="on") _RR = true;
+    } else if (command == "gamma") {
+        _gamma = std::stof(arguments[0]);
     } else if (command == "importancesampling") {
         if (arguments[0]=="cosine")
             _importanceSampling = ImportanceSampling::kCosine;
@@ -463,6 +466,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->RR = _RR;
     scene->importanceSampling = _importanceSampling;
     scene->brdf = _brdf;
+    scene->gamma = _gamma;
     integratorType = _integratorType;
     return scene;
 }
