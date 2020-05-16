@@ -92,6 +92,7 @@ public:
     std::vector<material_t> quadMaterials;
     bool lightStratify;
     bool NEE;
+    bool MIS;
     bool RR;
     int numLightSamples;
     float gamma;
@@ -110,4 +111,11 @@ public:
         glm::vec3 direction,
         float maxDistance = std::numeric_limits<float>::infinity()) const;
 
+    bool castRayToLight(
+        glm::vec3 origin,
+        glm::vec3 direction,
+        glm::vec3* hitPosition,
+        glm::vec3* hitNormal,
+        material_t* hitMaterial,
+        int* hitIdx) const;
 };

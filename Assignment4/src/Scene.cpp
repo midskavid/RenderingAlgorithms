@@ -51,6 +51,57 @@ bool Scene::castRay(
     }
 }
 
+
+bool Scene::castRayToLight(
+    glm::vec3 origin,
+    glm::vec3 direction,
+    glm::vec3* hitPosition,
+    glm::vec3* hitNormal,
+    material_t* hitMaterial,
+    int* hitIdx) const
+{
+    RTCIntersectContext context;
+    rtcInitIntersectContext(&context);
+
+    RTCRayHit rayHit;
+    rayHit.ray.org_x = origin.x;
+    rayHit.ray.org_y = origin.y;
+    rayHit.ray.org_z = origin.z;
+    rayHit.ray.dir_x = direction.x;
+    rayHit.ray.dir_y = direction.y;
+    rayHit.ray.dir_z = direction.z;
+    rayHit.ray.tnear = 0.0001f;
+    rayHit.ray.tfar = std::numeric_limits<float>::infinity();
+    rayHit.ray.mask = 0;
+    rayHit.ray.flags = 0;
+    rayHit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
+    rayHit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
+
+    rtcIntersect1(embreeScene, &context, &rayHit);
+
+    if (rayHit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
+        *hitPosition = origin + direction * rayHit.ray.tfar;
+        *hitNormal = glm::normalize(glm::vec3(rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z));
+        if (rayHit.hit.geomID == geometryID_t::kTriangle) {
+            *hitMaterial = triMaterials[rayHit.hit.primID];
+        } 
+        else if (rayHit.hit.geomID == geometryID_t::kQuadLight){
+            *hitMaterial = quadMaterials[rayHit.hit.primID];
+            *hitIdx = rayHit.hit.primID;
+        }
+        else {
+            int sphereIndex = rayHit.hit.instID[0]-2;
+            *hitNormal = glm::normalize(sphereNormalTransforms[sphereIndex] * (*hitNormal));
+            *hitMaterial = sphereMaterials[sphereIndex];
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+
 bool Scene::castOcclusionRay(glm::vec3 origin, glm::vec3 direction, float maxDistance) const
 {
     RTCIntersectContext context;

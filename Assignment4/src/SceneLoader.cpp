@@ -45,6 +45,7 @@ private:
     std::vector<material_t> _quadMaterials;
     bool _lightStratify = false;
     bool _NEE = false;
+    bool _MIS = false;
     bool _RR = false;
     int _numLightSamples = 1;
     float _gamma = 1.0f;
@@ -124,6 +125,10 @@ void SceneLoader::executeCommand(
     } else if (command == "nexteventestimation") {
         if (arguments[0]== "on")
             _NEE = true;
+        if (arguments[0]=="off")
+            _NEE = false;
+        if (arguments[0]=="mis")
+            _MIS = true;
     } else if (command == "russianroulette") {
         if (arguments[0]=="on") _RR = true;
     } else if (command == "gamma") {
@@ -470,6 +475,7 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->numLightSamples = _numLightSamples;
     scene->lightStratify = _lightStratify;
     scene->NEE = _NEE;
+    scene->MIS = _MIS;
     scene->RR = _RR;
     scene->importanceSampling = _importanceSampling;
     scene->gamma = _gamma;

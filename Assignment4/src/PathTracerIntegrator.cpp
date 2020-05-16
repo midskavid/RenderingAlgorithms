@@ -71,8 +71,103 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
 }
 
 glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction) {
-    return traceRay(origin, direction, 1, glm::vec3(1,1,1));
+    if (!_scene->MIS)
+        return traceRay(origin, direction, 1, glm::vec3(1,1,1));
+    else 
+        return traceRayMIS(origin, direction, 1, glm::vec3(1,1,1));
 }
+
+glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 direction, int depth, glm::vec3 throughput) {
+    glm::vec3 outputColor = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 hitPosition;
+    glm::vec3 hitNormal;
+    material_t hitMaterial;
+    bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
+    hitNormal = glm::normalize(hitNormal);
+    BRDF* _brdf = hitMaterial.brdf;
+    if (hit) {
+        //if (depth>1 && hitMaterial.isLightSource) return outputColor;
+        if (hitMaterial.isLightSource) return outputColor;
+        auto weightedDirColor = GetWeightedDirColor(hitPosition, hitNormal, _brdf, direction, hitMaterial);
+        outputColor += weightedDirColor;
+    }
+    return outputColor;
+}
+
+glm::vec3 PathTracerIntegrator::GetWeightedDirColor(const glm::vec3& hitPosition, const glm::vec3& hitNormal, BRDF* _brdf, glm::vec3 direction, const material_t& hitMaterial) {
+    auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
+    direction = -direction;
+    glm::vec3 outputColor {0,0,0};
+    int numLights = _scene->quadLights.size();
+
+    for (const auto& light : _scene->quadLights) {
+        glm::vec3 outputColor_ = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        auto ltPt = light._a + GetUniformRandom()*light._ab + GetUniformRandom()*light._ac;
+        glm::vec3 toLight = ltPt - hitPosition;
+        float lightDistance = glm::length(toLight);
+        toLight /= lightDistance;
+
+        bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
+        if (!occluded) {
+            auto n_wi = std::max(0.f,glm::dot(hitNormal, toLight));
+            auto nl_wi = std::max(0.f,glm::dot(light._normal, toLight));
+            outputColor_ += (_brdf->ComputeShading(refl, toLight, direction, hitNormal, hitMaterial)*n_wi*nl_wi);///(lightDistance*lightDistance);
+        }
+        auto wt = GetWeight(toLight, hitPosition, _brdf, true, refl, direction, hitNormal, hitMaterial);
+        auto pne = pdfnee(toLight, hitPosition);
+        if (pne>0)
+            outputColor += outputColor_*light._intensity*wt/pne;
+        // if (std::isnan(outputColor.x)||std::isnan(outputColor.y)||std::isnan(outputColor.z))
+        //     std::cout<<"JHOL "<<pdfnee(toLight, hitPosition)<<"\n";
+
+    }
+    return outputColor/float(numLights);
+}
+
+float PathTracerIntegrator::pdfnee(glm::vec3 wi, glm::vec3 pos) {
+    int numLights = _scene->quadLights.size();
+
+    glm::vec3 hitPosition;
+    glm::vec3 hitNormal;
+    material_t hitMaterial;
+    int idx = 0;
+    bool hit = _scene->castRayToLight(pos, wi, &hitPosition, &hitNormal, &hitMaterial, &idx);
+    float pdf = 0.0;
+    if (hit && hitMaterial.isLightSource) {
+        auto Rsq = glm::distance2(hitPosition, pos);
+        auto A = _scene->quadLights[idx]._area;
+        auto nl =  _scene->quadLights[idx]._normal;
+        pdf = Rsq/(A*std::abs(glm::dot(nl,wi)));
+    }
+    return (1.0f/numLights)*pdf;
+}
+
+float PathTracerIntegrator::GetWeight(glm::vec3 wi, glm::vec3 pos, BRDF* _brdf, bool nee, const glm::vec3& reflectedDir, const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
+    if (nee) {
+        auto neePDF = pdfnee(wi, pos);
+        auto brdfPDF = _brdf->ComputePDF(reflectedDir, wi, wo, nr, material);
+        return (neePDF*neePDF)/ (neePDF*neePDF + brdfPDF*brdfPDF);
+    }
+    else {
+        auto neePDF = pdfnee(wi, pos);
+        auto brdfPDF = _brdf->ComputePDF(reflectedDir, wi, wo, nr, material);
+        return (brdfPDF*brdfPDF)/ (neePDF*neePDF + brdfPDF*brdfPDF);
+    }
+    return 0.;
+}
+// void trace() {
+    
+//     float dirColor;
+//     weigh dirColor
+
+//     sample brdf.
+//     indirect color;
+//     weigh
+//     return dir+indirect
+// }
+
+
 
 float PathTracerIntegrator::GetUniformRandom() {
     static thread_local std::mt19937 generator; // do I need mRD here?
