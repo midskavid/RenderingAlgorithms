@@ -59,6 +59,7 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
                 w_i = _brdf->Sample_BRDFWi(refl, w_i, direction, hitNormal, hitMaterial);
                 auto shading = _brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
                 float pdf = _brdf->ComputePDF(refl, w_i, direction, hitNormal, hitMaterial);
+                //if (pdf<0) std::cout<<pdf<<std::endl;
                 auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
                 newThroughput = shading*n_wi/pdf; 
                 //std::cout<<newThroughput.x<<" "<<newThroughput.y<<" "<<newThroughput.z<<std::endl;
@@ -109,29 +110,38 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
             else 
                 return hitMaterial.emission;
         } 
-        auto weightedDirColor = GetWeightedDirColor(hitPosition, hitNormal, _brdf, direction, hitMaterial);
+        auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
+        direction = -direction;
+
+        auto weightedDirColor = GetWeightedDirColor(refl, hitPosition, hitNormal, _brdf, direction, hitMaterial);
         outputColor += weightedDirColor;
         
         glm::vec3 w_i;
-        auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
-        direction = -direction;
         w_i = _brdf->Sample_BRDFWi(refl, w_i, direction, hitNormal, hitMaterial);
         auto shading = _brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
         float pdf = _brdf->ComputePDF(refl, w_i, direction, hitNormal, hitMaterial);
-        auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+        //auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+        auto n_wi = glm::dot(hitNormal, w_i);
         auto wt = GetWeight(w_i, hitPosition, _brdf, false, refl, direction, hitNormal, hitMaterial);
         
-        if (pdf>0)
+        if (pdf!=0)
             outputColor += (shading*n_wi*wt/pdf)*traceRay(hitPosition, w_i, depth+1, throughput);
+
         //newThroughput = shading*n_wi/pdf; 
+    // if (std::isnan(outputColor.x)||std::isnan(outputColor.y)||std::isnan(outputColor.z))
+    //     std::cout<<"JHOL\n";
 
     }
+    // if (outputColor.x>1.0f||outputColor.y>1.0f||outputColor.z>1.0f)
+    //     std::cout<<outputColor.x<<" "<<outputColor.y<<" "<<outputColor.z<<"\n";
+
+    //outputColor = glm::clamp(outputColor, glm::vec3{0,0,0}, glm::vec3{1.0f,1.0f,1.0f});
+
     return outputColor;
 }
 
-glm::vec3 PathTracerIntegrator::GetWeightedDirColor(const glm::vec3& hitPosition, const glm::vec3& hitNormal, BRDF* _brdf, glm::vec3 direction, const material_t& hitMaterial) {
-    auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
-    direction = -direction;
+glm::vec3 PathTracerIntegrator::GetWeightedDirColor(const glm::vec3& refl, const glm::vec3& hitPosition, const glm::vec3& hitNormal, BRDF* _brdf, const glm::vec3& direction, const material_t& hitMaterial) {
+    
     glm::vec3 outputColor {0,0,0};
     int numLights = _scene->quadLights.size();
 

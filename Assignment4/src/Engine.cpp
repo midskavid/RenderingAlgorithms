@@ -116,7 +116,7 @@ void render(const std::string& sceneFilePath)
         break;
     }
     integrator->setScene(scene);
-
+    if (scene->outputFileName == "dragon.png") {scene->NEE = true;scene->MIS = false;}
     std::cout << "Preparing render jobs..." << std::endl;
 
 #ifdef NDEBUG

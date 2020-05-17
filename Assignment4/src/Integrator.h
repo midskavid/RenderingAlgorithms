@@ -64,7 +64,7 @@ class PathTracerIntegrator : public Integrator {
     glm::vec3 traceRay(glm::vec3 origin, glm::vec3 direction, int depth, glm::vec3 throughput);
     glm::vec3 traceRayMIS(glm::vec3 origin, glm::vec3 direction, int depth, glm::vec3 throughput);
     float GetUniformRandom();
-    glm::vec3 GetWeightedDirColor(const glm::vec3& hitPosition, const glm::vec3& hitNormal, BRDF* _brdf, glm::vec3 direction, const material_t& hitMaterial);
+    glm::vec3 GetWeightedDirColor(const glm::vec3& refl, const glm::vec3& hitPosition, const glm::vec3& hitNormal, BRDF* _brdf, const glm::vec3& direction, const material_t& hitMaterial);
     float pdfnee(glm::vec3 wi, glm::vec3 hitPos);
     float GetWeight(glm::vec3 wi, glm::vec3 pos, BRDF* _brdf, bool nee, const glm::vec3& reflectedDir, const glm::vec3& wo,const glm::vec3& nr, const material_t& material);
 public :

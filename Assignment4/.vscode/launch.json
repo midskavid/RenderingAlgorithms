@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Debug/rt168",
-            "args": ["../../Scenes/hw4/mis.test"],
+            "args": ["../../Scenes/hw4/dragon.test"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/Debug/",
             "environment": [],

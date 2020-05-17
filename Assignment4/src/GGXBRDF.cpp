@@ -5,8 +5,10 @@ float GGXBRDF::D_H(float theta_h, float alpha) {
 }
 
 float GGXBRDF::G1_V(glm::vec3 w, glm::vec3 nr, float alpha) {
-    if (glm::dot(w, nr) > 0) {
-        auto theta_v = std::acos(glm::dot(w, nr));
+    auto w_nr = glm::dot(w, nr);
+    if ( w_nr > 0) {
+        if (w_nr>1.0f) w_nr = 1.0f;
+        auto theta_v = std::acos(w_nr);
         return 2.0f/ (1.0f + sqrt(1+alpha*alpha*tan(theta_v)*tan(theta_v)));
     }
     return 0.f;
@@ -39,9 +41,10 @@ glm::vec3 GGXBRDF::ComputeShading(const glm::vec3& reflectedDir,const glm::vec3&
     
     return diffuse + specular;
 }
-
+#include <iostream>
 float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,const glm::vec3& wo,const glm::vec3& nr, const material_t& material) {
     UNUSED(reflectedDir);
+    
     float kdBar = (material.diffuse.r + material.diffuse.g + material.diffuse.b)/3.0f;
     float ksBar = (material.specular.r + material.specular.g + material.specular.b)/3.0f;
     float t = std::max(0.25f,ksBar/(ksBar+kdBar));
@@ -49,6 +52,7 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
     // auto wi_n = glm::dot(wi, nr);
     // auto wo_n = glm::dot(wo, nr);
     auto h = glm::normalize(wi+wo);
+    //auto h_nr = std::max(0.f,glm::dot(h, nr));
     auto h_nr = glm::dot(h, nr);
     if (h_nr>1.0f) h_nr = 1.0f;
     auto theta_h = std::acos(h_nr);
@@ -58,6 +62,8 @@ float GGXBRDF::ComputePDF(const glm::vec3& reflectedDir,const glm::vec3& wi,cons
     if (h_wi!=0)
         pdf += (t*D_H(theta_h, material.alpha)*h_nr)/(4.0f*h_wi);
 
+    // if (pdf <0.)
+    //     std::cout<< pdf<<std::endl;
     return pdf;
 }
 
