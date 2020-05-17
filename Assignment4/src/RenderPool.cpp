@@ -23,15 +23,15 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
         size_t y = startPixel.y + wy;
         for (size_t wx = 0; wx < windowSize.x; wx++) {
             size_t x = startPixel.x + wx;
-            auto unifSamples = GenerateUniformRandomSamples(scene->spp);
-            int rootN = sqrt(scene->spp);
-            for (int ii=0;ii<rootN;++ii) {
-                for (int jj=0;jj<rootN;++jj) {
-                    auto idx = ii*rootN+jj;
-                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + float((jj+unifSamples[idx].x)/(rootN*1.0f))) * scene->camera.pixelRight + (y + float((ii+unifSamples[idx].y)/(rootN*1.0f))) * scene->camera.pixelDown;
-                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
-                    _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
-                }
+            auto unifSamples = GenerateUniformRandomSamples(scene->spp-1);
+
+            glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + 0.5f) * scene->camera.pixelRight + (y + 0.5f) * scene->camera.pixelDown;
+            glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+            _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
+            for (const auto& sp:unifSamples) {
+                glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
             }
             _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
         }

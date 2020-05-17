@@ -14,6 +14,14 @@ glm::vec3 PathTracerIntegrator::traceRay(glm::vec3 origin, glm::vec3 direction, 
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
     hitNormal = glm::normalize(hitNormal);
     BRDF* _brdf = hitMaterial.brdf;
+
+    // if (depth>mMaxDepth&&hitMaterial.isLightSource) {
+    //     if (glm::dot(hitNormal, direction)<0)
+    //         return outputColor; // change this to take normal
+    //     else 
+    //         return hitMaterial.emission;
+    // }
+
     if (hit) {
         if (_scene->NEE) {
             if (depth>1 && hitMaterial.isLightSource) return outputColor;
@@ -85,11 +93,38 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
     bool hit = _scene->castRay(origin, direction, &hitPosition, &hitNormal, &hitMaterial);
     hitNormal = glm::normalize(hitNormal);
     BRDF* _brdf = hitMaterial.brdf;
+
+    if (depth>mMaxDepth) {
+        if (glm::dot(hitNormal, direction)<0)
+            return outputColor; // change this to take normal
+        else 
+            return hitMaterial.emission;
+    }
+
     if (hit) {
-        //if (depth>1 && hitMaterial.isLightSource) return outputColor;
-        if (hitMaterial.isLightSource) return outputColor;
+        if (depth>1 && hitMaterial.isLightSource) return outputColor;
+        if (hitMaterial.isLightSource) {
+            if (glm::dot(hitNormal, direction)<0)
+                return outputColor; // change this to take normal
+            else 
+                return hitMaterial.emission;
+        } 
         auto weightedDirColor = GetWeightedDirColor(hitPosition, hitNormal, _brdf, direction, hitMaterial);
         outputColor += weightedDirColor;
+        
+        glm::vec3 w_i;
+        auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
+        direction = -direction;
+        w_i = _brdf->Sample_BRDFWi(refl, w_i, direction, hitNormal, hitMaterial);
+        auto shading = _brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
+        float pdf = _brdf->ComputePDF(refl, w_i, direction, hitNormal, hitMaterial);
+        auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+        auto wt = GetWeight(w_i, hitPosition, _brdf, false, refl, direction, hitNormal, hitMaterial);
+        
+        if (pdf>0)
+            outputColor += (shading*n_wi*wt/pdf)*traceRay(hitPosition, w_i, depth+1, throughput);
+        //newThroughput = shading*n_wi/pdf; 
+
     }
     return outputColor;
 }
@@ -111,8 +146,7 @@ glm::vec3 PathTracerIntegrator::GetWeightedDirColor(const glm::vec3& hitPosition
         bool occluded = _scene->castOcclusionRay(hitPosition, toLight, lightDistance);
         if (!occluded) {
             auto n_wi = std::max(0.f,glm::dot(hitNormal, toLight));
-            auto nl_wi = std::max(0.f,glm::dot(light._normal, toLight));
-            outputColor_ += (_brdf->ComputeShading(refl, toLight, direction, hitNormal, hitMaterial)*n_wi*nl_wi);///(lightDistance*lightDistance);
+            outputColor_ += (_brdf->ComputeShading(refl, toLight, direction, hitNormal, hitMaterial)*n_wi);
         }
         auto wt = GetWeight(toLight, hitPosition, _brdf, true, refl, direction, hitNormal, hitMaterial);
         auto pne = pdfnee(toLight, hitPosition);
@@ -156,18 +190,6 @@ float PathTracerIntegrator::GetWeight(glm::vec3 wi, glm::vec3 pos, BRDF* _brdf, 
     }
     return 0.;
 }
-// void trace() {
-    
-//     float dirColor;
-//     weigh dirColor
-
-//     sample brdf.
-//     indirect color;
-//     weigh
-//     return dir+indirect
-// }
-
-
 
 float PathTracerIntegrator::GetUniformRandom() {
     static thread_local std::mt19937 generator; // do I need mRD here?

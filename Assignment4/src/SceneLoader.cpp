@@ -143,7 +143,7 @@ void SceneLoader::executeCommand(
             _curMaterial.brdf = _brdfGGX;
         }
         else if (arguments[0]=="phong") {
-            _curMaterial.brdf = _brdfGGX;
+            _curMaterial.brdf = _brdfPhong;
         }
     } else if (command == "integrator") {
         if (arguments[0] == "analyticdirect")
