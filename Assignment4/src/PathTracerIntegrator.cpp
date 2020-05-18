@@ -110,6 +110,13 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
             else 
                 return hitMaterial.emission;
         } 
+
+        float q = 0.0f;
+        if (_scene->RR) {
+            q = 1.0f - std::min(1.0f, std::max({throughput.x, throughput.y, throughput.z}));
+            if (GetUniformRandom()<q) return outputColor;
+        }
+        glm::vec3 newThroughput;
         auto refl = glm::normalize(direction - 2*glm::dot(hitNormal, direction)*hitNormal);
         direction = -direction;
 
@@ -124,8 +131,11 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
         auto n_wi = glm::dot(hitNormal, w_i);
         auto wt = GetWeight(w_i, hitPosition, _brdf, false, refl, direction, hitNormal, hitMaterial);
         
-        if (pdf!=0)
-            outputColor += (shading*n_wi*wt/pdf)*traceRay(hitPosition, w_i, depth+1, throughput);
+        if (pdf>0){ 
+            newThroughput = (shading*n_wi*wt/pdf); 
+            newThroughput *= (1.0f/(1.0f-q));
+            outputColor += newThroughput*traceRay(hitPosition, w_i, depth+1, newThroughput);
+        }
 
         //newThroughput = shading*n_wi/pdf; 
     // if (std::isnan(outputColor.x)||std::isnan(outputColor.y)||std::isnan(outputColor.z))

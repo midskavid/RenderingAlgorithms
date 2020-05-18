@@ -116,7 +116,9 @@ void render(const std::string& sceneFilePath)
         break;
     }
     integrator->setScene(scene);
+    //scene->maxDepth = std::min(scene->maxDepth,2);
     if (scene->outputFileName == "dragon.png") {scene->NEE = true;scene->MIS = false;}
+    //if (scene->MIS&&scene->maxDepth>1)
     std::cout << "Preparing render jobs..." << std::endl;
 
 #ifdef NDEBUG
