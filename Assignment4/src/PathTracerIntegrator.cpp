@@ -96,7 +96,7 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
     BRDF* _brdf = hitMaterial.brdf;
 
     if (depth>mMaxDepth) {
-        if (glm::dot(hitNormal, direction)<0)
+        if (glm::dot(hitNormal, direction)<0 || !hitMaterial.isLightSource)
             return outputColor; // change this to take normal
         else 
             return hitMaterial.emission;
@@ -127,26 +127,17 @@ glm::vec3 PathTracerIntegrator::traceRayMIS(glm::vec3 origin, glm::vec3 directio
         w_i = _brdf->Sample_BRDFWi(refl, w_i, direction, hitNormal, hitMaterial);
         auto shading = _brdf->ComputeShading(refl, w_i, direction, hitNormal, hitMaterial);
         float pdf = _brdf->ComputePDF(refl, w_i, direction, hitNormal, hitMaterial);
-        //auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
-        auto n_wi = glm::dot(hitNormal, w_i);
+        auto n_wi = std::max(0.f,glm::dot(hitNormal, w_i));
+        //auto n_wi = glm::dot(hitNormal, w_i);
         auto wt = GetWeight(w_i, hitPosition, _brdf, false, refl, direction, hitNormal, hitMaterial);
         
         if (pdf>0){ 
             newThroughput = (shading*n_wi*wt/pdf); 
             newThroughput *= (1.0f/(1.0f-q));
-            outputColor += newThroughput*traceRay(hitPosition, w_i, depth+1, newThroughput);
+            outputColor += newThroughput*traceRayMIS(hitPosition, w_i, depth+1, newThroughput);
         }
 
-        //newThroughput = shading*n_wi/pdf; 
-    // if (std::isnan(outputColor.x)||std::isnan(outputColor.y)||std::isnan(outputColor.z))
-    //     std::cout<<"JHOL\n";
-
     }
-    // if (outputColor.x>1.0f||outputColor.y>1.0f||outputColor.z>1.0f)
-    //     std::cout<<outputColor.x<<" "<<outputColor.y<<" "<<outputColor.z<<"\n";
-
-    //outputColor = glm::clamp(outputColor, glm::vec3{0,0,0}, glm::vec3{1.0f,1.0f,1.0f});
-
     return outputColor;
 }
 
