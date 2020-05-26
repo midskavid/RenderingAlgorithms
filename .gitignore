@@ -16,3 +16,9 @@ Assignment4/build/*
 Assignment4/Debug/*
 Assignment4/Release/*
 Assignment4/*.png
+Project/*.png
+Project/build/*
+Project/Release/*
+Project/Debug/*
+Project/Resources/*
+
