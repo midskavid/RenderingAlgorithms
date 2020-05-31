@@ -31,11 +31,15 @@ private:
     float GetContrastMap();
     float NoiseEstimation();
     float Median(float *x_data, int x_blkSize);
+    std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
+    void AdaptivelySample(int itr);
+
 private:
-    int mRemSamples;
+    int mTotSamples;
     int mNumItr; //4
     int mBlockSize; //8
     int mInitSpp; //2
+    int mMaxSPP;
     int mWidth;
     int mHeight;
     int mNumPixels;
@@ -44,7 +48,10 @@ private:
     int mImportanceMapHeight;
     std::vector<float> mImportanceMap;
     std::vector<glm::vec3>* mPixelColor;
+    std::vector<int> mAddSamples;
     BlockData mBlockData;
+    int mSamplesForThisItr;
+    std::vector<float> sampleDivision;
 };
 
 #endif //AMLD_H
