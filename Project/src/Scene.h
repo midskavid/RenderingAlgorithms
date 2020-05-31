@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <embree3/rtcore.h>
 
+#include "AMLD.h"
+
 enum geometryID_t {
     kTriangle,
     kQuadLight,
@@ -98,6 +100,7 @@ public:
     float gamma;
     ImportanceSampling importanceSampling;
     RTCScene embreeScene;
+    AMLD* adaptiveSampler;
     
     bool castRay(
         glm::vec3 origin,

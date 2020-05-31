@@ -34,6 +34,9 @@ private:
     std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
     void AdaptivelySample(int itr);
 
+public:
+    std::vector<glm::vec3>* mPixelColor;
+
 private:
     int mTotSamples;
     int mNumItr; //4
@@ -47,7 +50,6 @@ private:
     int mImportanceMapWidth;
     int mImportanceMapHeight;
     std::vector<float> mImportanceMap;
-    std::vector<glm::vec3>* mPixelColor;
     std::vector<int> mAddSamples;
     BlockData mBlockData;
     int mSamplesForThisItr;

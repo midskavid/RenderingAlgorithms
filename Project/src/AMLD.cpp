@@ -267,7 +267,7 @@ void AMLD::AdaptivelySample(int itr) {
 			}
 		}
 	}
-	// Dump image of samples too..
+	// Dump image of samples..
 
 	// Recalculate for next iteration!!!
 	int usedSamples = 0;

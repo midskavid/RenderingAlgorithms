@@ -117,7 +117,7 @@ void render(const std::string& sceneFilePath)
     }
     integrator->setScene(scene);
     //scene->maxDepth = std::min(scene->maxDepth,2);
-    if (scene->outputFileName == "dragon.png") {scene->NEE = true;scene->MIS = false;}
+    //if (scene->outputFileName == "dragon.png") {scene->NEE = true;scene->MIS = false;}
     //if (scene->MIS&&scene->maxDepth>1)
     std::cout << "Preparing render jobs..." << std::endl;
 
@@ -126,56 +126,70 @@ void render(const std::string& sceneFilePath)
 #else    
     int numThreads = 1;
 #endif
-
-    std::vector<RenderJob*> jobs;
-    for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
-        for (unsigned int x = 0; x < scene->imageSize.x; x += WINDOW_DIM) {
-            glm::uvec2 startPixel = glm::uvec2(x, y);
-            glm::uvec2 windowSize = glm::uvec2(
-                std::min(x + WINDOW_DIM, scene->imageSize.x) - x,
-                std::min(y + WINDOW_DIM, scene->imageSize.y) - y);
-            jobs.push_back(new RenderJob(startPixel, windowSize));
-        }
-    }
-
-    std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
-
-    std::cout
-        << "Rendering... ("
-        << jobs.size() << " jobs, "
-        << numThreads << " threads)"
-        << std::endl;
-
     TimePoint startTime = Clock::now();
-    {
-        RenderPool pool(scene, integrator, numThreads, jobs);
-
-        size_t numCompletedJobs = 0;
-        while (numCompletedJobs < jobs.size()) {
-
-            std::vector<RenderJob*> completedJobs;
-            pool.getCompletedJobs(completedJobs);
-
-            for (RenderJob* job : completedJobs) {
-                std::vector<glm::vec3> result = job->getResult();
-                for (unsigned int wy = 0; wy < job->windowSize.y; wy++) {
-                    unsigned int y = job->startPixel.y + wy;
-                    for (unsigned int wx = 0; wx < job->windowSize.x; wx++) {
-                        unsigned int x = job->startPixel.x + wx;
-                        imageData[y * scene->imageSize.x + x] = glm::vec3(std::pow(result[wy * job->windowSize.x + wx].x,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].y,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].z,1.0f/scene->gamma));
-                    }
-                }
+    for (int ii=0;ii<4;++ii) {
+        std::vector<RenderJob*> jobs;
+        for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
+            for (unsigned int x = 0; x < scene->imageSize.x; x += WINDOW_DIM) {
+                glm::uvec2 startPixel = glm::uvec2(x, y);
+                glm::uvec2 windowSize = glm::uvec2(
+                    std::min(x + WINDOW_DIM, scene->imageSize.x) - x,
+                    std::min(y + WINDOW_DIM, scene->imageSize.y) - y);
+                jobs.push_back(new RenderJob(startPixel, windowSize));
             }
-            numCompletedJobs += completedJobs.size();
-
-            printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
         }
+
+        std::cout
+            << "Rendering... ("
+            << jobs.size() << " jobs, "
+            << numThreads << " threads)"
+            << std::endl;
+
+        
+        {
+            RenderPool pool(scene, integrator, numThreads, jobs);
+
+            size_t numCompletedJobs = 0;
+            while (numCompletedJobs < jobs.size()) {
+
+                std::vector<RenderJob*> completedJobs;
+                pool.getCompletedJobs(completedJobs);
+
+                // for (RenderJob* job : completedJobs) {
+                //     std::vector<glm::vec3> result = job->getResult();
+                //     for (unsigned int wy = 0; wy < job->windowSize.y; wy++) {
+                //         unsigned int y = job->startPixel.y + wy;
+                //         for (unsigned int wx = 0; wx < job->windowSize.x; wx++) {
+                //             unsigned int x = job->startPixel.x + wx;
+                //             imageData[y * scene->imageSize.x + x] = glm::vec3(std::pow(result[wy * job->windowSize.x + wx].x,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].y,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].z,1.0f/scene->gamma));
+                //         }
+                //     }
+                // }
+                numCompletedJobs += completedJobs.size();
+
+                printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
+            }
+        }
+
+        scene->adaptiveSampler->CreateImportanceMap(ii);
+        // DUMP Image of samples...
     }
+
     TimePoint endTime = Clock::now();
     Duration renderTime = endTime - startTime;
-
+    std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
     std::cout << std::endl;
     std::cout << "Render time: " << renderTime.count() << "s" << std::endl;
+
+    for (int ii=0;ii<imageData.size();++ii) {
+        glm::vec3 col {0,0,0};
+        for (const auto& cc:scene->adaptiveSampler->mPixelColor[ii]) {
+            col += cc;
+        }
+        col = col*(1.0f/scene->adaptiveSampler->mPixelColor[ii].size());
+        imageData[ii] = glm::vec3(std::pow(col.x,1.0f/scene->gamma), std::pow(col.y,1.0f/scene->gamma), std::pow(col.z,1.0f/scene->gamma));
+    }
+
 
     rtcReleaseScene(scene->embreeScene);
     rtcReleaseDevice(embreeDevice);
