@@ -128,27 +128,26 @@ float AMLD::GetContrastMap() {
 	muB /= mBlockData.validSize;
 
     if(muR>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;+ii)
+        for(int ii=0;ii<mBlockData.validSize;++ii)
             gammaR += abs(mBlockData.sampleRGB[ii].r-muR);
-            gammaR /= (muR*mBlockData.validSize);
+        gammaR /= (muR*mBlockData.validSize);
     }
 
     if(muG>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;+ii)
+        for(int ii=0;ii<mBlockData.validSize;++ii)
             gammaG += abs(mBlockData.sampleRGB[ii].g-muG);
-            gammaG /= (muG*mBlockData.validSize);
+        gammaG /= (muG*mBlockData.validSize);
     }
 
     if(muB>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;+ii)
+        for(int ii=0;ii<mBlockData.validSize;++ii)
             gammaB += abs(mBlockData.sampleRGB[ii].b-muB);
-            gammaB /= (muB*mBlockData.validSize);
+        gammaB /= (muB*mBlockData.validSize);
     }
 	return (gammaR+gammaG+gammaB)/3.0;
 }
 
 float AMLD::NoiseEstimation() {
-    int _length = 64;
     float _factor = 1 / 0.6745;
 
     wavelet_transfer_2d(8, 8, &mBlockData.pixelColorR.front(), 3, 1);

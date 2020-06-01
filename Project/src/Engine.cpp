@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <chrono>
+#include <string>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -22,6 +23,8 @@ using TimePoint = std::chrono::time_point<Clock>;
 using Duration = std::chrono::duration<float>;
 
 const unsigned int WINDOW_DIM = 32;
+const glm::vec3 LIGHT_BLUE = {0.5,0.5,1.0};
+const glm::vec3 LIGHT_RED = {1.0, 0.5, 0.5};
 
 static unsigned char convertColorChannel(float channel)
 {
@@ -127,7 +130,8 @@ void render(const std::string& sceneFilePath)
     int numThreads = 1;
 #endif
     TimePoint startTime = Clock::now();
-    for (int ii=0;ii<4;++ii) {
+    std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
+    for (int itr=0;itr<4;++itr) {
         std::vector<RenderJob*> jobs;
         for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
             for (unsigned int x = 0; x < scene->imageSize.x; x += WINDOW_DIM) {
@@ -170,18 +174,27 @@ void render(const std::string& sceneFilePath)
                 printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
             }
         }
-
-        scene->adaptiveSampler->CreateImportanceMap(ii);
+        for (size_t ii=0;ii<scene->imageSize.y;++ii) {
+            for (size_t jj=0;jj<scene->imageSize.x;++jj) {
+                int pixIdx = ii*scene->imageSize.x+jj;
+                auto curSamp = scene->adaptiveSampler->GetNumSamplesAtPixel(pixIdx);
+                auto alpha = (65.0f-curSamp)/(65.0f);
+                auto pixCol = alpha*LIGHT_BLUE + (1.0f-alpha)*LIGHT_RED;
+                imageData[pixIdx] = pixCol;
+            }
+        }
+        saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
+        scene->adaptiveSampler->CreateImportanceMap(itr);
         // DUMP Image of samples...
     }
 
     TimePoint endTime = Clock::now();
     Duration renderTime = endTime - startTime;
-    std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
+    
     std::cout << std::endl;
     std::cout << "Render time: " << renderTime.count() << "s" << std::endl;
 
-    for (int ii=0;ii<imageData.size();++ii) {
+    for (size_t ii=0;ii<imageData.size();++ii) {
         glm::vec3 col {0,0,0};
         for (const auto& cc:scene->adaptiveSampler->mPixelColor[ii]) {
             col += cc;

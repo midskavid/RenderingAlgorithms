@@ -104,10 +104,10 @@ void wavelet_transfer_2d(int num_rows, int num_cols, float *input, int type, int
     }
 }
 
-vf getDiagDetail(float *x_Coeff, int x_blkSize)
+float* getDiagDetail(float *x_Coeff, int x_blkSize)
 {
 	int _coeffLength = x_blkSize * x_blkSize / 4;
-	vf _detCoeff(_coeffLength);
+	float *_detCoeff = new float[_coeffLength];
 	for (int i = 0; i < _coeffLength; i++)
 	{
 		_detCoeff[i] = x_Coeff[_coeffLength * 2 + x_blkSize / 2 + i % (x_blkSize / 2) + (i/(x_blkSize/2))*x_blkSize];

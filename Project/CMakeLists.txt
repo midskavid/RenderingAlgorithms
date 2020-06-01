@@ -37,6 +37,8 @@ set(LIB_SOURCES
     src/PhongBRDF.cpp
     src/GGXBRDF.cpp
     src/lodepng/lodepng.cpp
+    src/Wavelet.cpp
+    src/AMLD.cpp
 )
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 include_directories(src/ ${EMBREE_INCLUDE_DIRS})
