@@ -24,7 +24,9 @@ public:
     AMLD(int _spp, int _w, int _h);
     void CreateImportanceMap(int iteration);
     void AddPixelColor(int idx, glm::vec3& _c);
+    int GetSPPForPixel(int pixel);
     int GetNumSamplesAtPixel(int pixel);
+
 private: 
     void GetBlockDimensions(int itr, int& _l, int& _r, int& _t, int& _b, int _ii, int _jj);
     float GenerateImportanceMap();
@@ -33,7 +35,7 @@ private:
     float Median(float *x_data, int x_blkSize);
     std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
     void AdaptivelySample(int itr);
-
+    
 public:
     std::vector<glm::vec3>* mPixelColor;
 

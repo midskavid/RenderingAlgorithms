@@ -15,7 +15,7 @@ AMLD::AMLD(int _spp, int _w, int _h) : mBlockData(_spp*8*8, 8*8), sampleDivision
     mBlockSize = 8; //8
     mInitSpp = 2; //2
 	mMaxSPP = _spp*8; //heurestic as seen from author's code;
-    mPixelColor = new std::vector<glm::vec3> (mNumPixels);
+    mPixelColor = new std::vector<glm::vec3> [mNumPixels];
 	mAddSamples = std::vector<int> (mNumPixels, 2); //initial samples..
 	mSamplesForThisItr = (mTotSamples - 2*mNumPixels) / sampleDivision[0];
 }
@@ -104,7 +104,7 @@ int AMLD::GetNumSamplesAtPixel(int pixel) {
 
 float AMLD::GenerateImportanceMap() {
 	float contrastMap = GetContrastMap(); // Equation 6
-	float noise = NoiseEstimation(); // Equation 3
+	float noise = 1.0f;//NoiseEstimation(); // Equation 3
 	//m_maxNoise = std::max(m_maxNoise, noise);
 	return sqrt(contrastMap * noise); // Equation 7!!!
 }
@@ -161,8 +161,12 @@ float AMLD::NoiseEstimation() {
     wavelet_transfer_2d(8, 8, &mBlockData.pixelColorB.front(), 3, 1);
     float *_diagWaveCoeffB = getDiagDetail(&mBlockData.pixelColorB.front(), 8);
     float _noiseB = Median(_diagWaveCoeffB, 8) * _factor;
-
-    return (powf(_noiseR,2) + powf(_noiseG,2) + powf(_noiseB,2))/3;
+	
+	delete _diagWaveCoeffR;
+	delete _diagWaveCoeffG;
+	delete _diagWaveCoeffB;
+    
+	return (powf(_noiseR,2) + powf(_noiseG,2) + powf(_noiseB,2))/3;
 
 }
 
@@ -239,7 +243,7 @@ void AMLD::AdaptivelySample(int itr) {
 
 	int samplesForThis = mSamplesForThisItr;
 	for (int ii=0;ii<mImportanceMapHeight;++ii) {
-		for (int jj=0;ii<mImportanceMapWidth;++jj) {
+		for (int jj=0;jj<mImportanceMapWidth;++jj) {
 			int _l, _r, _t, _b;
 			int blkIdx = ii*mImportanceMapWidth + jj;
 			_l = jj*mBlockSize;
@@ -274,4 +278,8 @@ void AMLD::AdaptivelySample(int itr) {
 		usedSamples += mAddSamples[ii] + GetNumSamplesAtPixel(ii);
 	
 	mSamplesForThisItr = (mTotSamples - usedSamples)/sampleDivision[itr];
+}
+
+int AMLD::GetSPPForPixel(int pixel) {
+	return mAddSamples[pixel];
 }

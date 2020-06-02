@@ -129,6 +129,7 @@ void render(const std::string& sceneFilePath)
 #else    
     int numThreads = 1;
 #endif
+    scene->adaptiveSampler = new AMLD (scene->spp, scene->imageSize.x, scene->imageSize.y);
     TimePoint startTime = Clock::now();
     std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
     for (int itr=0;itr<4;++itr) {
@@ -174,6 +175,7 @@ void render(const std::string& sceneFilePath)
                 printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
             }
         }
+        // DUMP Image of samples...
         for (size_t ii=0;ii<scene->imageSize.y;++ii) {
             for (size_t jj=0;jj<scene->imageSize.x;++jj) {
                 int pixIdx = ii*scene->imageSize.x+jj;
@@ -185,7 +187,7 @@ void render(const std::string& sceneFilePath)
         }
         saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
         scene->adaptiveSampler->CreateImportanceMap(itr);
-        // DUMP Image of samples...
+        jobs.clear();
     }
 
     TimePoint endTime = Clock::now();

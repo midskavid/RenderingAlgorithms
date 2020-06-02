@@ -89,7 +89,6 @@ void wavelet_transfer_2d_sub(int num_rows, int num_cols, int step_col, float *in
 
 void wavelet_transfer_2d(int num_rows, int num_cols, float *input, int type, int level)
 {
-    int i = 0;
     int cnum_rows = num_rows, cnum_cols = num_cols;
     while(cnum_rows >= num_rows/pow(float(2), level-1) && cnum_cols >= num_cols/pow(float(2), level-1)){
 		if(type == 1)

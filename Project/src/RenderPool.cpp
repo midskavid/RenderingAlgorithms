@@ -24,7 +24,7 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
         for (size_t wx = 0; wx < windowSize.x; wx++) {
             size_t x = startPixel.x + wx;
             int pixIdx = y*scene->imageSize.x + x;
-            auto numSamp = scene->adaptiveSampler->GetNumSamplesAtPixel(pixIdx);
+            auto numSamp = scene->adaptiveSampler->GetSPPForPixel(pixIdx);
             auto unifSamples = GenerateUniformRandomSamples(numSamp);
 
             for (const auto& sp:unifSamples) {
@@ -34,6 +34,7 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
                 _result[wy * windowSize.x + wx] += outC;
                 scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
             }
+            if (numSamp>0)
             _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
         }
     }
