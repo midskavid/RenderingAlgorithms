@@ -133,6 +133,7 @@ void render(const std::string& sceneFilePath)
     TimePoint startTime = Clock::now();
     std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
     for (int itr=0;itr<4;++itr) {
+        std::cout<<itr<<std::endl;
         std::vector<RenderJob*> jobs;
         for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
             for (unsigned int x = 0; x < scene->imageSize.x; x += WINDOW_DIM) {
@@ -140,7 +141,9 @@ void render(const std::string& sceneFilePath)
                 glm::uvec2 windowSize = glm::uvec2(
                     std::min(x + WINDOW_DIM, scene->imageSize.x) - x,
                     std::min(y + WINDOW_DIM, scene->imageSize.y) - y);
-                jobs.push_back(new RenderJob(startPixel, windowSize));
+                auto tmp = new RenderJob(startPixel, windowSize);
+                //if (tmp)
+                    jobs.push_back(tmp);
             }
         }
 
@@ -159,19 +162,7 @@ void render(const std::string& sceneFilePath)
 
                 std::vector<RenderJob*> completedJobs;
                 pool.getCompletedJobs(completedJobs);
-
-                // for (RenderJob* job : completedJobs) {
-                //     std::vector<glm::vec3> result = job->getResult();
-                //     for (unsigned int wy = 0; wy < job->windowSize.y; wy++) {
-                //         unsigned int y = job->startPixel.y + wy;
-                //         for (unsigned int wx = 0; wx < job->windowSize.x; wx++) {
-                //             unsigned int x = job->startPixel.x + wx;
-                //             imageData[y * scene->imageSize.x + x] = glm::vec3(std::pow(result[wy * job->windowSize.x + wx].x,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].y,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].z,1.0f/scene->gamma));
-                //         }
-                //     }
-                // }
                 numCompletedJobs += completedJobs.size();
-
                 printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
             }
         }
@@ -205,10 +196,10 @@ void render(const std::string& sceneFilePath)
         imageData[ii] = glm::vec3(std::pow(col.x,1.0f/scene->gamma), std::pow(col.y,1.0f/scene->gamma), std::pow(col.z,1.0f/scene->gamma));
     }
 
+    saveImage(imageData, scene->imageSize, scene->outputFileName);
+    std::cout << "Image saved as '" << scene->outputFileName << "'" << std::endl;
 
     rtcReleaseScene(scene->embreeScene);
     rtcReleaseDevice(embreeDevice);
 
-    saveImage(imageData, scene->imageSize, scene->outputFileName);
-    std::cout << "Image saved as '" << scene->outputFileName << "'" << std::endl;
 }

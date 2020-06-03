@@ -6,6 +6,7 @@
 
 #include "Wavelet.h"
 typedef std::vector<float> vf;
+extern std::vector<float> diagcoeff;
 
 vf h2{0.707106781186547f,0.707106781186547f};
 vf g2{-0.707106781186547f,0.707106781186547f};
@@ -106,10 +107,11 @@ void wavelet_transfer_2d(int num_rows, int num_cols, float *input, int type, int
 float* getDiagDetail(float *x_Coeff, int x_blkSize)
 {
 	int _coeffLength = x_blkSize * x_blkSize / 4;
-	float *_detCoeff = new float[_coeffLength];
-	for (int i = 0; i < _coeffLength; i++)
+	//float *_detCoeff = new float[_coeffLength];
+	for (int i = 0; i < 16; ++i)
 	{
-		_detCoeff[i] = x_Coeff[_coeffLength * 2 + x_blkSize / 2 + i % (x_blkSize / 2) + (i/(x_blkSize/2))*x_blkSize];
+        diagcoeff[i] = x_Coeff[_coeffLength * 2 + x_blkSize / 2 + i % (x_blkSize / 2) + (i/(x_blkSize/2))*x_blkSize];
+		//_detCoeff[i] = x_Coeff[_coeffLength * 2 + x_blkSize / 2 + i % (x_blkSize / 2) + (i/(x_blkSize/2))*x_blkSize];
 	}
-	return _detCoeff;
+	return nullptr;
 }

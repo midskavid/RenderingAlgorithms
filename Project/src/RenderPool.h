@@ -14,14 +14,13 @@ class RenderJob {
 public:
     RenderJob(glm::uvec2 startPixel, glm::uvec2 windowSize);
     void render(Scene* scene, Integrator* integrator);
-    std::vector<glm::vec3> getResult();
 
 public:
     const glm::uvec2 startPixel;
     const glm::uvec2 windowSize;
 
 private:
-    std::vector<glm::vec3> _result;
+    //std::vector<glm::vec3> _result;
 
 };
 

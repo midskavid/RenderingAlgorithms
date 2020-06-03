@@ -32,7 +32,7 @@ private:
     float GenerateImportanceMap();
     float GetContrastMap();
     float NoiseEstimation();
-    float Median(float *x_data, int x_blkSize);
+    float GetMedian();
     std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
     void AdaptivelySample(int itr);
     

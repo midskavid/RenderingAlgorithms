@@ -12,8 +12,7 @@
 
 RenderJob::RenderJob(glm::uvec2 startPixel, glm::uvec2 windowSize)
     : startPixel(startPixel),
-      windowSize(windowSize),
-      _result(windowSize.x * windowSize.y)
+      windowSize(windowSize)
 {
 }
 
@@ -31,11 +30,8 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
                 glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
                 glm::vec3 direction = glm::normalize(target - scene->camera.origin);
                 auto outC = integrator->traceRay(scene->camera.origin, direction);
-                _result[wy * windowSize.x + wx] += outC;
                 scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
             }
-            if (numSamp>0)
-            _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
         }
     }
 }
@@ -50,11 +46,6 @@ std::vector<glm::vec2> RenderJob::GenerateUniformRandomSamples(int numS) {
     }
     //std::generate(data.begin(), data.end(), [distribution]() { return glm::vec2 (distribution(generator),distribution(generator)); });
     return data;    
-}
-
-std::vector<glm::vec3> RenderJob::getResult()
-{
-    return std::move(_result);
 }
 
 RenderPool::RenderPool(Scene* scene, Integrator* integrator, int numThreads, std::vector<RenderJob*>& jobs)
