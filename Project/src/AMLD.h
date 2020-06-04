@@ -12,12 +12,6 @@ class AMLD {
         std::vector<float> pixelColorR;
         std::vector<float> pixelColorG;
         std::vector<float> pixelColorB;
-        BlockData(int _s, int _p) {
-            sampleRGB = std::vector<glm::vec3> (_s);
-            pixelColorR = std::vector<float> (_p);
-            pixelColorG = std::vector<float> (_p);
-            pixelColorB = std::vector<float> (_p);
-        }
     };
 
 public:
@@ -32,7 +26,7 @@ private:
     float GenerateImportanceMap();
     float GetContrastMap();
     float NoiseEstimation();
-    float GetMedian();
+    float Median(float *x_data, int x_blkSize);
     std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
     void AdaptivelySample(int itr);
     
