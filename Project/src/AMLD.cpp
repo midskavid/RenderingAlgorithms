@@ -6,7 +6,7 @@
 
 constexpr float eps = 1e-5;
 
-AMLD::AMLD(int _spp, int _w, int _h) : mBlockData(_spp*8*8, 8*8), sampleDivision{7.0f,3.0f,1.0f, 1.0f} {
+AMLD::AMLD(int _spp, int _w, int _h) : sampleDivision{7.0f,3.0f,1.0f, 1.0f} {
     mWidth = _w;
     mHeight = _h;
     mNumPixels = mWidth*mHeight;
@@ -36,15 +36,21 @@ void AMLD::CreateImportanceMap(int iteration) {
             GetBlockDimensions(iteration, _l, _r, _t, _b, ii, jj);
             int sidx = 0;
             int pcoloridx = 0;
-            //mBlockData.pixelColorR = 
+            mBlockData.pixelColorR.clear();
+			mBlockData.pixelColorG.clear();
+			mBlockData.pixelColorB.clear();
+			mBlockData.sampleRGB.clear();
+
             for (int py=_t;py<=_b;++py) {
                 for (int px=_l;px<=_r;++px) {
-                    if (py<mHeight&&py>=0&&px<mWidth&&px>=0) {
+					mBlockData.pixelColorR.push_back(0);
+					mBlockData.pixelColorG.push_back(0);
+					mBlockData.pixelColorB.push_back(0);
+                    if ((py<mHeight)&&(py>=0)&&(px<mWidth)&&(px>=0)) {
                         int _indPixel = py * mWidth + px;
-                        auto pidx = py*mWidth + px;
-                        auto sNum = GetNumSamplesAtPixel(pidx);
+                        auto sNum = GetNumSamplesAtPixel(_indPixel);
                         for (int ss=0;ss<sNum;++ss) {
-                            mBlockData.sampleRGB[sidx] = mPixelColor[_indPixel][ss];
+                            mBlockData.sampleRGB.push_back(mPixelColor[_indPixel][ss]);
                             mBlockData.pixelColorR[pcoloridx] += mPixelColor[_indPixel][ss].r;
                             mBlockData.pixelColorG[pcoloridx] += mPixelColor[_indPixel][ss].g;
                             mBlockData.pixelColorB[pcoloridx] += mPixelColor[_indPixel][ss].b;
@@ -84,6 +90,7 @@ void AMLD::CreateImportanceMap(int iteration) {
 }
 
 void AMLD::GetBlockDimensions(int itr, int& _l, int& _r, int& _t, int& _b, int _ii, int _jj) {
+#pragma message ("Useless as itr is never 4")
 	if(itr == mNumItr) {
 		_t = _ii - 4;
 		_b = _ii + 3;
@@ -104,8 +111,7 @@ int AMLD::GetNumSamplesAtPixel(int pixel) {
 
 float AMLD::GenerateImportanceMap() {
 	float contrastMap = GetContrastMap(); // Equation 6
-	float noise = 1.0f;//NoiseEstimation(); // Equation 3
-	//m_maxNoise = std::max(m_maxNoise, noise);
+	float noise = NoiseEstimation(); // Equation 3
 	return sqrt(contrastMap * noise); // Equation 7!!!
 }
 
@@ -116,7 +122,7 @@ float AMLD::GetContrastMap() {
 	float muR = 0;
 	float muG = 0;
 	float muB = 0;
-
+	
 	for(int ii=0;ii<mBlockData.validSize;++ii)
 	{
 		muR += mBlockData.sampleRGB[ii].r;
@@ -129,19 +135,19 @@ float AMLD::GetContrastMap() {
 
     if(muR>eps)	{
         for(int ii=0;ii<mBlockData.validSize;++ii)
-            gammaR += abs(mBlockData.sampleRGB[ii].r-muR);
+            gammaR += fabs(mBlockData.sampleRGB[ii].r-muR);
         gammaR /= (muR*mBlockData.validSize);
     }
 
     if(muG>eps)	{
         for(int ii=0;ii<mBlockData.validSize;++ii)
-            gammaG += abs(mBlockData.sampleRGB[ii].g-muG);
+            gammaG += fabs(mBlockData.sampleRGB[ii].g-muG);
         gammaG /= (muG*mBlockData.validSize);
     }
 
     if(muB>eps)	{
         for(int ii=0;ii<mBlockData.validSize;++ii)
-            gammaB += abs(mBlockData.sampleRGB[ii].b-muB);
+            gammaB += fabs(mBlockData.sampleRGB[ii].b-muB);
         gammaB /= (muB*mBlockData.validSize);
     }
 	return (gammaR+gammaG+gammaB)/3.0;

@@ -26,12 +26,12 @@ const unsigned int WINDOW_DIM = 32;
 const glm::vec3 LIGHT_BLUE = {0.5,0.5,1.0};
 const glm::vec3 LIGHT_RED = {1.0, 0.5, 0.5};
 
-static unsigned char convertColorChannel(float channel)
+unsigned char convertColorChannel(float channel)
 {
     return static_cast<unsigned char>(std::min(255.0f, std::max(0.0f, 255.0f * channel)));
 }
 
-static void saveImage(
+void saveImage(
     const std::vector<glm::vec3>& imageData,
     glm::uvec2 imageSize,
     const std::string& fileName)
@@ -88,6 +88,20 @@ static void printLoadingBar(float completion, int numBars = 60)
     std::cout << oss.str() << std::flush;
 }
 
+
+std::vector<glm::vec2> GenerateUniformRandomSamples(int numS) {
+    static std::mt19937 gen; 
+    std::uniform_real_distribution<float> distribution(0.0f,1.0f);
+    std::vector<glm::vec2> data(numS);
+    //std::cout<<distribution(generator);
+    for (int ii=0;ii<numS;++ii) {
+        data[ii] = glm::vec2(distribution(gen), distribution(gen));
+    }
+    //std::generate(data.begin(), data.end(), [distribution]() { return glm::vec2 (distribution(generator),distribution(generator)); });
+    return data;    
+}
+
+
 void render(const std::string& sceneFilePath)
 {
 
@@ -133,6 +147,8 @@ void render(const std::string& sceneFilePath)
     TimePoint startTime = Clock::now();
     std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
     for (int itr=0;itr<4;++itr) {
+        std::cout<<"Iteration : "<<itr<<std::endl;
+#if 1        
         std::vector<RenderJob*> jobs;
         for (unsigned int y = 0; y < scene->imageSize.y; y += WINDOW_DIM) {
             for (unsigned int x = 0; x < scene->imageSize.x; x += WINDOW_DIM) {
@@ -156,20 +172,8 @@ void render(const std::string& sceneFilePath)
 
             size_t numCompletedJobs = 0;
             while (numCompletedJobs < jobs.size()) {
-
                 std::vector<RenderJob*> completedJobs;
                 pool.getCompletedJobs(completedJobs);
-
-                // for (RenderJob* job : completedJobs) {
-                //     std::vector<glm::vec3> result = job->getResult();
-                //     for (unsigned int wy = 0; wy < job->windowSize.y; wy++) {
-                //         unsigned int y = job->startPixel.y + wy;
-                //         for (unsigned int wx = 0; wx < job->windowSize.x; wx++) {
-                //             unsigned int x = job->startPixel.x + wx;
-                //             imageData[y * scene->imageSize.x + x] = glm::vec3(std::pow(result[wy * job->windowSize.x + wx].x,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].y,1.0f/scene->gamma), std::pow(result[wy * job->windowSize.x + wx].z,1.0f/scene->gamma));
-                //         }
-                //     }
-                // }
                 numCompletedJobs += completedJobs.size();
 
                 printLoadingBar(static_cast<float>(numCompletedJobs) / jobs.size());
@@ -188,6 +192,35 @@ void render(const std::string& sceneFilePath)
         saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
         scene->adaptiveSampler->CreateImportanceMap(itr);
         jobs.clear();
+#else
+        for (size_t py = 0; py < scene->imageSize.y; ++py) {
+            for (size_t px = 0; px < scene->imageSize.x; ++px) {
+                int pixIdx = py*scene->imageSize.x + px;
+                auto numSamp = scene->adaptiveSampler->GetSPPForPixel(pixIdx);
+                auto unifSamples = GenerateUniformRandomSamples(numSamp);
+
+                for (const auto& sp:unifSamples) {
+                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (px + sp.x) * scene->camera.pixelRight + (py + sp.y) * scene->camera.pixelDown;
+                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                    auto outC = integrator->traceRay(scene->camera.origin, direction);
+                    scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
+                }
+            }
+        }
+        // DUMP Image of samples...
+        for (size_t ii=0;ii<scene->imageSize.y;++ii) {
+            for (size_t jj=0;jj<scene->imageSize.x;++jj) {
+                int pixIdx = ii*scene->imageSize.x+jj;
+                auto curSamp = scene->adaptiveSampler->GetNumSamplesAtPixel(pixIdx);
+                auto alpha = (65.0f-curSamp)/(65.0f);
+                auto pixCol = alpha*LIGHT_BLUE + (1.0f-alpha)*LIGHT_RED;
+                imageData[pixIdx] = pixCol;
+            }
+        }
+        saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
+        scene->adaptiveSampler->CreateImportanceMap(itr);
+
+#endif
     }
 
     TimePoint endTime = Clock::now();
@@ -195,20 +228,20 @@ void render(const std::string& sceneFilePath)
     
     std::cout << std::endl;
     std::cout << "Render time: " << renderTime.count() << "s" << std::endl;
-
-    for (size_t ii=0;ii<imageData.size();++ii) {
+    std::vector<glm::vec3> finalImage(scene->imageSize.y * scene->imageSize.x);
+    for (size_t ii=0;ii<finalImage.size();++ii) {
         glm::vec3 col {0,0,0};
         for (const auto& cc:scene->adaptiveSampler->mPixelColor[ii]) {
             col += cc;
         }
         col = col*(1.0f/scene->adaptiveSampler->mPixelColor[ii].size());
-        imageData[ii] = glm::vec3(std::pow(col.x,1.0f/scene->gamma), std::pow(col.y,1.0f/scene->gamma), std::pow(col.z,1.0f/scene->gamma));
+        finalImage[ii] = glm::vec3(std::pow(col.x,1.0f/scene->gamma), std::pow(col.y,1.0f/scene->gamma), std::pow(col.z,1.0f/scene->gamma));
     }
 
 
     rtcReleaseScene(scene->embreeScene);
     rtcReleaseDevice(embreeDevice);
 
-    saveImage(imageData, scene->imageSize, scene->outputFileName);
+    saveImage(finalImage, scene->imageSize, scene->outputFileName);
     std::cout << "Image saved as '" << scene->outputFileName << "'" << std::endl;
 }
