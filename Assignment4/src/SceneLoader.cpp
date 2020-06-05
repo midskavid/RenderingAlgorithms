@@ -49,6 +49,9 @@ private:
     bool _RR = false;
     int _numLightSamples = 1;
     float _gamma = 1.0f;
+    float _focalLength = 5.0f;
+    float _aperture = 1.0f;
+    bool _lens = false;
     BRDF* _brdfPhong = new PhongBRDF;
     BRDF* _brdfGGX = new GGXBRDF;
 
@@ -174,6 +177,12 @@ void SceneLoader::executeCommand(
         _sphereTransforms.push_back(transform);
 
         _sphereMaterials.push_back(_curMaterial);
+
+    } else if (command == "lens") {
+
+        _lens = true;
+        _focalLength = std::stof(arguments[0]);
+        _aperture = std::stof(arguments[1]);
 
     } else if (command == "maxverts") {
 
@@ -479,6 +488,9 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->RR = _RR;
     scene->importanceSampling = _importanceSampling;
     scene->gamma = _gamma;
+    scene->lens = _lens;
+    scene->focalLength = _focalLength;
+    scene->aperture = _aperture;
     integratorType = _integratorType;
     return scene;
 }

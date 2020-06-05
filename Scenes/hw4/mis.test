@@ -9,8 +9,8 @@ importancesampling brdf
 nexteventestimation mis
 russianroulette off
 camera  0 2 15  0 -2 2.5  0 1 0  28
+#lens 16.3 .000003
 output mis.png
-
 maxdepth 1
 
 

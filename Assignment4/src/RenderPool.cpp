@@ -7,7 +7,7 @@
 
 #include "Scene.h"
 #include "Integrator.h"
-
+#include "Constants.h"
 #include "RenderPool.h"
 
 RenderJob::RenderJob(glm::uvec2 startPixel, glm::uvec2 windowSize)
@@ -23,17 +23,38 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
         size_t y = startPixel.y + wy;
         for (size_t wx = 0; wx < windowSize.x; wx++) {
             size_t x = startPixel.x + wx;
-            auto unifSamples = GenerateUniformRandomSamples(scene->spp-1);
+            if(scene->lens) {
+                auto unifSamples = GenerateUniformRandomSamples(scene->spp);
+                auto unifSamplesLens = GenerateUniformRandomSamples(scene->spp);
 
-            glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + 0.5f) * scene->camera.pixelRight + (y + 0.5f) * scene->camera.pixelDown;
-            glm::vec3 direction = glm::normalize(target - scene->camera.origin);
-            _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
-            for (const auto& sp:unifSamples) {
-                glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                int spIdx = 0;
+                for (const auto& sp:unifSamples) {
+                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                    auto P = scene->camera.origin + scene->focalLength*direction;
+                    auto xxx = glm::vec3(sqrt(unifSamplesLens[spIdx].x)*cos(TWO_PI*unifSamplesLens[spIdx].y), sqrt(unifSamplesLens[spIdx].x)*sin(TWO_PI*unifSamplesLens[spIdx].y), 0);
+
+                    auto newOrig = scene->camera.origin + xxx;
+                    auto newDirec = glm::normalize(P - newOrig);
+                    _result[wy * windowSize.x + wx] += integrator->traceRay(newOrig, newDirec);
+                    ++spIdx;
+                }
+                _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
+            }
+            else {
+                auto unifSamples = GenerateUniformRandomSamples(scene->spp);
+
+                glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + 0.5f) * scene->camera.pixelRight + (y + 0.5f) * scene->camera.pixelDown;
                 glm::vec3 direction = glm::normalize(target - scene->camera.origin);
                 _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
+
+                for (const auto& sp:unifSamples) {
+                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                    _result[wy * windowSize.x + wx] += integrator->traceRay(scene->camera.origin, direction);
+                }
+                _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
             }
-            _result[wy * windowSize.x + wx] /= (scene->spp+0.0f);
         }
     }
 }

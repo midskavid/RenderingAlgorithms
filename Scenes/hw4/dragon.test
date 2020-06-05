@@ -8,6 +8,7 @@ importancesampling brdf
 nexteventestimation mis
 russianroulette on
 camera  -8 6 14  -1 -1 0  0 1 0  45
+#lens 18 3
 output dragon.png
 
 quadLight  -5 10 -25  0 5 5  10 0 0  5 5 6
