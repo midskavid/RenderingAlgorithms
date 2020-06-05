@@ -143,6 +143,7 @@ void render(const std::string& sceneFilePath)
 #else    
     int numThreads = 1;
 #endif
+    std::string tmpFName = scene->outputFileName.substr(0, scene->outputFileName.find("."));
     scene->adaptiveSampler = new AMLD (scene->spp, scene->imageSize.x, scene->imageSize.y);
     TimePoint startTime = Clock::now();
     std::vector<glm::vec3> imageData(scene->imageSize.y * scene->imageSize.x);
@@ -189,7 +190,7 @@ void render(const std::string& sceneFilePath)
                 imageData[pixIdx] = pixCol;
             }
         }
-        saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
+        saveImage(imageData, scene->imageSize, tmpFName+std::to_string(itr)+".png");
         scene->adaptiveSampler->CreateImportanceMap(itr);
         jobs.clear();
 #else
@@ -217,7 +218,7 @@ void render(const std::string& sceneFilePath)
                 imageData[pixIdx] = pixCol;
             }
         }
-        saveImage(imageData, scene->imageSize, std::to_string(itr)+".png");
+        saveImage(imageData, scene->imageSize, tmpFName+std::to_string(itr)+".png");
         scene->adaptiveSampler->CreateImportanceMap(itr);
 
 #endif

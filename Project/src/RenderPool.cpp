@@ -9,6 +9,7 @@
 #include "Integrator.h"
 #include "AMLD.h"
 #include "RenderPool.h"
+#include "Constants.h"
 
 RenderJob::RenderJob(glm::uvec2 startPixel, glm::uvec2 windowSize)
     : startPixel(startPixel),
@@ -23,14 +24,37 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
         for (size_t wx = 0; wx < windowSize.x; wx++) {
             size_t x = startPixel.x + wx;
             int pixIdx = y*scene->imageSize.x + x;
-            auto numSamp = scene->adaptiveSampler->GetSPPForPixel(pixIdx);
-            auto unifSamples = GenerateUniformRandomSamples(numSamp);
+            if (!scene->lens) {
+                auto numSamp = scene->adaptiveSampler->GetSPPForPixel(pixIdx);
+                auto unifSamples = GenerateUniformRandomSamples(numSamp);
 
-            for (const auto& sp:unifSamples) {
-                glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
-                glm::vec3 direction = glm::normalize(target - scene->camera.origin);
-                auto outC = integrator->traceRay(scene->camera.origin, direction);
-                scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
+                for (const auto& sp:unifSamples) {
+                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                    auto outC = integrator->traceRay(scene->camera.origin, direction);
+                    scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
+                }
+            }
+            else {
+                auto numSamp = scene->adaptiveSampler->GetSPPForPixel(pixIdx);
+                auto unifSamples = GenerateUniformRandomSamples(numSamp);
+                auto unifSamplesLens = GenerateUniformRandomSamples(numSamp);
+
+                int spIdx = 0;
+                for (const auto& sp:unifSamples) {
+                    glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
+                    glm::vec3 direction = glm::normalize(target - scene->camera.origin);
+                    auto P = scene->camera.origin + scene->focalLength*direction;
+                    auto xxx = scene->aperture*glm::vec3(sqrt(unifSamplesLens[spIdx].x)*cos(TWO_PI*unifSamplesLens[spIdx].y), sqrt(unifSamplesLens[spIdx].x)*sin(TWO_PI*unifSamplesLens[spIdx].y), 0);
+                    
+                    auto newOrig = scene->camera.origin + xxx;
+                    auto newDirec = glm::normalize(P - newOrig);
+                    
+                    auto outC = integrator->traceRay(newOrig, newDirec);
+                    scene->adaptiveSampler->AddPixelColor(pixIdx, outC);
+                    ++spIdx;
+                }
+
             }
         }
     }

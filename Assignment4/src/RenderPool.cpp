@@ -32,7 +32,7 @@ void RenderJob::render(Scene* scene, Integrator* integrator)
                     glm::vec3 target = scene->camera.imagePlaneTopLeft + (x + sp.x) * scene->camera.pixelRight + (y + sp.y) * scene->camera.pixelDown;
                     glm::vec3 direction = glm::normalize(target - scene->camera.origin);
                     auto P = scene->camera.origin + scene->focalLength*direction;
-                    auto xxx = glm::vec3(sqrt(unifSamplesLens[spIdx].x)*cos(TWO_PI*unifSamplesLens[spIdx].y), sqrt(unifSamplesLens[spIdx].x)*sin(TWO_PI*unifSamplesLens[spIdx].y), 0);
+                    auto xxx = scene->aperture*glm::vec3(sqrt(unifSamplesLens[spIdx].x)*cos(TWO_PI*unifSamplesLens[spIdx].y), sqrt(unifSamplesLens[spIdx].x)*sin(TWO_PI*unifSamplesLens[spIdx].y), 0);
 
                     auto newOrig = scene->camera.origin + xxx;
                     auto newDirec = glm::normalize(P - newOrig);

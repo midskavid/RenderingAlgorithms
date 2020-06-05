@@ -98,6 +98,9 @@ public:
     bool RR;
     int numLightSamples;
     float gamma;
+    float aperture;
+    float focalLength;
+    bool lens;    
     ImportanceSampling importanceSampling;
     RTCScene embreeScene;
     AMLD* adaptiveSampler;

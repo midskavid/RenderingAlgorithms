@@ -49,6 +49,9 @@ private:
     bool _RR = false;
     int _numLightSamples = 1;
     float _gamma = 1.0f;
+    float _focalLength = 5.0f;
+    float _aperture = 1.0f;
+    bool _lens = false;    
     BRDF* _brdfPhong = new PhongBRDF;
     BRDF* _brdfGGX = new GGXBRDF;
 
@@ -160,6 +163,12 @@ void SceneLoader::executeCommand(
         _cameraLookAt = loadVec3(arguments, 3);
         _cameraUp = loadVec3(arguments, 6);
         _cameraFieldOfView = std::stof(arguments[9]);
+
+    } else if (command == "lens") {
+
+        _lens = true;
+        _focalLength = std::stof(arguments[0]);
+        _aperture = std::stof(arguments[1]);
 
     } else if (command == "sphere") {
 
@@ -480,6 +489,9 @@ Scene* SceneLoader::commitSceneData(IntegratorType& integratorType)
     scene->importanceSampling = _importanceSampling;
     scene->gamma = _gamma;
     integratorType = _integratorType;
+    scene->lens = _lens;
+    scene->focalLength = _focalLength;
+    scene->aperture = _aperture;    
     return scene;
 }
 
