@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <vector>
 
@@ -8,8 +7,10 @@
 const std::vector<float> h{0.707106781186547f,0.707106781186547f};
 const std::vector<float> g{-0.707106781186547f,0.707106781186547f};
 
-void Wave1d(int n,int step, float *a, float *output)
+void Wave1d(std::vector<float>& input, int idx, std::vector<float>& output, int step)
 {
+    float *a = &input[idx];
+    int n = 8;
     int i,j;
     int half  = n >> 1;
     int len = 2;
@@ -26,53 +27,32 @@ void Wave1d(int n,int step, float *a, float *output)
 
         for(j = 0; j < len; j++)
         {
-            output[low] += h[j] * a[((i*2+j)%n) * step];
-            output[high] += g[j] * a[((i*2+j)%n) * step];
+            output[low] += h[j] * a[((i*2+j)%n)*step];
+            output[high] += g[j] * a[((i*2+j)%n)*step];
         }
 
     }
 }
 
-void WaveletSampling(int numRows, int numCols, float *input)
+void WaveletSampling(std::vector<float>& pixCol)
 {
-    int length_temp;
+    int _size = 8;
+    std::vector<float> tmp(_size);
 
-    int step;
-    float *temp;
-    float *ptr = NULL, *pp = NULL;
-
-    int i,j;
-    length_temp = (numRows>numCols)?numRows:numCols;
-    temp = (float*)malloc(sizeof(float)*length_temp);
-
-    ptr = input;
-    step = 1;
-    for(i = 0; i < numCols; i++){
-        Wave1d(numRows,step,ptr,temp);
-        pp = ptr;
-        for( j = 0; j <numRows; j++){
-            *pp = temp[j];
-            pp+=step;
+    for(int ii=0;ii<int(pixCol.size());ii+=8){
+        Wave1d(pixCol, ii, tmp, 1);
+        for (int jj=0;jj<8;++jj) {
+            pixCol[ii+jj] = tmp[jj];
         }
-        ptr+= numCols;
     }
 
-
-    /* first do transfer for rows */
-    ptr = input;
-    step = numCols; /* tricky here */
-    for(i = 0; i < numRows; i++){
-        Wave1d(numCols,step,ptr,temp);
-        pp = ptr;
-        for( j = 0; j <numCols; j++){
-            *pp = temp[j];
-            pp+=step;
+    // Along columns
+    for(int ii=0;ii<8;++ii){
+        Wave1d(pixCol,ii, tmp, 8);
+        for(int jj=0;jj<8;++jj){
+            pixCol[ii+jj*8] = tmp[jj];
         }
-        ptr += 1;
     }
-
-
-    free(temp);
 }
 
 float* DiagDetail(float *x_Coeff)

@@ -71,6 +71,7 @@ void AMLD::CreateImportanceMap(int iteration) {
             mImportanceMap[ii*mImportanceMapWidth+jj] = GenerateImportanceMap();
         }
     }
+	mImportanceMap = Dilation(mImportanceMap, mImportanceMapWidth, mImportanceMapHeight);
     // get extra samples to be added..
     mAddSamples = std::vector<int> (mWidth*mHeight,0);
     AdaptivelySample(iteration);
@@ -138,15 +139,15 @@ float AMLD::GetContrastMap() {
 }
 
 float AMLD::NoiseEstimation() {
-    WaveletSampling(8, 8, &mBlockData.pixelColorR.front());
+    WaveletSampling(mBlockData.pixelColorR);
     float *diagR = DiagDetail(&mBlockData.pixelColorR.front());
     float noiseR = Median(diagR)*1.4825796f;
 
-    WaveletSampling(8, 8, &mBlockData.pixelColorG.front());
+    WaveletSampling(mBlockData.pixelColorG);
     float *diagG = DiagDetail(&mBlockData.pixelColorG.front());
     float noiseG = Median(diagG)*1.4825796f;
 
-    WaveletSampling(8, 8, &mBlockData.pixelColorB.front());
+    WaveletSampling(mBlockData.pixelColorB);
     float *diagB = DiagDetail(&mBlockData.pixelColorB.front());
     float noiseB = Median(diagB)*1.4825796f;
 	
@@ -218,4 +219,56 @@ void AMLD::AdaptivelySample(int itr) {
 
 int AMLD::GetSPPForPixel(int pixel) {
 	return mAddSamples[pixel];
+}
+
+std::vector<float> AMLD::Dilation(std::vector<float> x_input, int x_w, int x_h)
+{
+	std::vector<float> _output(x_h*x_w);
+	for (int yy = 0; yy<x_h; yy++)
+		for(int xx = 0; xx<x_w; xx++)
+		{
+			// compare the N8 neighbors
+			int pind = yy*x_w+xx;
+			_output[pind] = x_input[pind]; //important
+			int ImaxInd = pind;
+			float Imax = x_input[ImaxInd];
+			int nind;			  
+			// left-up
+			nind = std::max(0,yy-1) * x_w + std::max(0,xx-1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// middle-up
+			nind = std::max(0,yy-1) * x_w + xx;
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// right-up
+			nind = std::max(0,yy-1) * x_w + std::min(x_w-1,xx+1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// right-middle
+			nind = yy * x_w + std::min(x_w-1,xx+1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// right-bottom
+			nind = std::min(x_h-1,yy+1) * x_w + std::min(x_w-1,xx+1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// middle-bottom
+			nind = std::min(x_h-1,yy+1) * x_w + xx;
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// left-bottom
+			nind = std::min(x_h-1,yy+1) * x_w + std::max(0,xx-1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+			// left-middle
+			nind = yy * x_w + std::max(0,xx-1);
+			if(x_input[nind]>Imax)
+				Imax = x_input[nind];
+
+			// replace with Imax
+			if(Imax>x_input[pind])
+				_output[pind] = Imax;			  
+		}
+	return _output;	
 }
