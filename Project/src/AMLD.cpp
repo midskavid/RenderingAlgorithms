@@ -139,35 +139,28 @@ float AMLD::GetContrastMap() {
 }
 
 float AMLD::NoiseEstimation() {
+
+	std::vector<float> diagC(16);
     WaveletSampling(mBlockData.pixelColorR);
-    float *diagR = DiagDetail(&mBlockData.pixelColorR.front());
-    float noiseR = Median(diagR)*1.4825796f;
+    DiagDetail(mBlockData.pixelColorR, diagC);
+    float noiseR = Median(diagC)*1.4825796f;
 
     WaveletSampling(mBlockData.pixelColorG);
-    float *diagG = DiagDetail(&mBlockData.pixelColorG.front());
-    float noiseG = Median(diagG)*1.4825796f;
+    DiagDetail(mBlockData.pixelColorG, diagC);
+    float noiseG = Median(diagC)*1.4825796f;
 
     WaveletSampling(mBlockData.pixelColorB);
-    float *diagB = DiagDetail(&mBlockData.pixelColorB.front());
-    float noiseB = Median(diagB)*1.4825796f;
+    DiagDetail(mBlockData.pixelColorB, diagC);
+    float noiseB = Median(diagC)*1.4825796f;
 	
-	delete diagR;
-	delete diagG;
-	delete diagB;
-    
 	return (powf(noiseR,2) + powf(noiseG,2) + powf(noiseB,2))/3;
 
 }
 
-float AMLD::Median(float *x_data)
-{
-	int _size = 16;
-	for (int i = 0; i < _size; i++)
-	{
-		x_data[i] = fabs(x_data[i]);
-	}
-	std::sort (x_data, x_data+_size);
-	return fabs(x_data[int(_size*.5)]);
+float AMLD::Median(std::vector<float>& diagC) {
+	for (auto& ii:diagC) ii = fabs(ii);
+	std::sort (diagC.begin(), diagC.end());
+	return (fabs(diagC[8]) + fabs(diagC[9]))/2.;
 }
 
 void AMLD::AdaptivelySample(int itr) {

@@ -2,6 +2,6 @@
 #define WAVELET_H
 
 void WaveletSampling(std::vector<float>& input);
-float* DiagDetail(float *Coeff);
+void DiagDetail(std::vector<float>& X, std::vector<float>& diagC);
 
 #endif // WAVELET_H
