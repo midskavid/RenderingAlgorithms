@@ -6,9 +6,7 @@
 
 class AMLD {
     struct BlockData {
-        int validSize;
         std::vector<glm::vec3> sampleRGB;
-
         std::vector<float> pixelColorR;
         std::vector<float> pixelColorG;
         std::vector<float> pixelColorB;
@@ -22,12 +20,11 @@ public:
     int GetNumSamplesAtPixel(int pixel);
 
 private: 
-    void GetBlockDimensions(int itr, int& _l, int& _r, int& _t, int& _b, int _ii, int _jj);
+    void GetBlockDimensions(int& _l, int& _r, int& _t, int& _b, int _ii, int _jj);
     float GenerateImportanceMap();
     float GetContrastMap();
     float NoiseEstimation();
-    float Median(float *x_data, int x_blkSize);
-    std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
+    float Median(float *x_data);
     void AdaptivelySample(int itr);
     
 public:

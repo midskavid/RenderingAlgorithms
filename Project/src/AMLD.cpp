@@ -33,7 +33,7 @@ void AMLD::CreateImportanceMap(int iteration) {
     for (int ii=0;ii<mImportanceMapHeight;++ii) {
         for (int jj=0;jj<mImportanceMapWidth;++jj) {
             int _l, _r, _t, _b;
-            GetBlockDimensions(iteration, _l, _r, _t, _b, ii, jj);
+            GetBlockDimensions(_l, _r, _t, _b, ii, jj);
             int sidx = 0;
             int pcoloridx = 0;
             mBlockData.pixelColorR.clear();
@@ -59,10 +59,6 @@ void AMLD::CreateImportanceMap(int iteration) {
                         mBlockData.pixelColorR[pcoloridx] /= sNum;
                         mBlockData.pixelColorG[pcoloridx] /= sNum;
                         mBlockData.pixelColorB[pcoloridx] /= sNum;
-#pragma message ("Weird transform")                        
-                        // mBlockData.pixelColorR[pcoloridx] = std::max(0.f, std::min(1.f, powf(mBlockData.pixelColorR[pcoloridx]/2.,0.5f)/0.9f));
-                    	// mBlockData.pixelColorR[pcoloridx] = int((mBlockData.pixelColorR[pcoloridx])*255+0.5);
-
                     }
                     else {
                         mBlockData.pixelColorR[pcoloridx] = 0;
@@ -72,13 +68,9 @@ void AMLD::CreateImportanceMap(int iteration) {
                     ++pcoloridx;
                 }
             }
-            mBlockData.validSize = sidx;
             mImportanceMap[ii*mImportanceMapWidth+jj] = GenerateImportanceMap();
         }
     }
-
-    // dilate..
-    mImportanceMap = Dilation(mImportanceMap, mImportanceMapWidth, mImportanceMapHeight);
     // get extra samples to be added..
     mAddSamples = std::vector<int> (mWidth*mHeight,0);
     AdaptivelySample(iteration);
@@ -89,20 +81,11 @@ void AMLD::CreateImportanceMap(int iteration) {
         mBlockSize /= 2; 
 }
 
-void AMLD::GetBlockDimensions(int itr, int& _l, int& _r, int& _t, int& _b, int _ii, int _jj) {
-#pragma message ("Useless as itr is never 4")
-	if(itr == mNumItr) {
-		_t = _ii - 4;
-		_b = _ii + 3;
-		_l = _jj - 4;
-		_r = _jj + 3;
-	}
-	else {
-		_t = _ii * mBlockSize-(8-mBlockSize)/2;
-		_l = _jj * mBlockSize-(8-mBlockSize)/2;
-		_b = _ii * mBlockSize+mBlockSize-1+(8-mBlockSize)/2;
-		_r = _jj * mBlockSize+mBlockSize-1+(8-mBlockSize)/2;
-	}
+void AMLD::GetBlockDimensions(int& _l, int& _r, int& _t, int& _b, int _ii, int _jj) {
+	_t = _ii * mBlockSize-(8-mBlockSize)/2;
+	_l = _jj * mBlockSize-(8-mBlockSize)/2;
+	_b = _ii * mBlockSize+mBlockSize-1+(8-mBlockSize)/2;
+	_r = _jj * mBlockSize+mBlockSize-1+(8-mBlockSize)/2;
 }    
 
 int AMLD::GetNumSamplesAtPixel(int pixel) {
@@ -122,121 +105,68 @@ float AMLD::GetContrastMap() {
 	float muR = 0;
 	float muG = 0;
 	float muB = 0;
-	
-	for(int ii=0;ii<mBlockData.validSize;++ii)
+	int _size = mBlockData.sampleRGB.size();
+
+	for(int ii=0;ii<_size;++ii)
 	{
 		muR += mBlockData.sampleRGB[ii].r;
 		muG += mBlockData.sampleRGB[ii].g;
 		muB += mBlockData.sampleRGB[ii].b;
 	}
-	muR /= mBlockData.validSize;
-	muG /= mBlockData.validSize;
-	muB /= mBlockData.validSize;
+	muR /= _size;
+	muG /= _size;
+	muB /= _size;
 
-    if(muR>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;++ii)
+    if(muR>eps)	{ // trick from authors code.. else does not converge..
+        for(int ii=0;ii<_size;++ii)
             gammaR += fabs(mBlockData.sampleRGB[ii].r-muR);
-        gammaR /= (muR*mBlockData.validSize);
+        gammaR /= (muR*_size);
     }
 
     if(muG>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;++ii)
+        for(int ii=0;ii<_size;++ii)
             gammaG += fabs(mBlockData.sampleRGB[ii].g-muG);
-        gammaG /= (muG*mBlockData.validSize);
+        gammaG /= (muG*_size);
     }
 
     if(muB>eps)	{
-        for(int ii=0;ii<mBlockData.validSize;++ii)
+        for(int ii=0;ii<_size;++ii)
             gammaB += fabs(mBlockData.sampleRGB[ii].b-muB);
-        gammaB /= (muB*mBlockData.validSize);
+        gammaB /= (muB*_size);
     }
 	return (gammaR+gammaG+gammaB)/3.0;
 }
 
 float AMLD::NoiseEstimation() {
-    float _factor = 1 / 0.6745;
+    WaveletSampling(8, 8, &mBlockData.pixelColorR.front());
+    float *diagR = DiagDetail(&mBlockData.pixelColorR.front());
+    float noiseR = Median(diagR)*1.4825796f;
 
-    wavelet_transfer_2d(8, 8, &mBlockData.pixelColorR.front(), 3, 1);
-    float *_diagWaveCoeffR = getDiagDetail(&mBlockData.pixelColorR.front(), 8);
-    float _noiseR = Median(_diagWaveCoeffR, 8) * _factor;
+    WaveletSampling(8, 8, &mBlockData.pixelColorG.front());
+    float *diagG = DiagDetail(&mBlockData.pixelColorG.front());
+    float noiseG = Median(diagG)*1.4825796f;
 
-    wavelet_transfer_2d(8, 8, &mBlockData.pixelColorG.front(), 3, 1);
-    float *_diagWaveCoeffG = getDiagDetail(&mBlockData.pixelColorG.front(), 8);
-    float _noiseG = Median(_diagWaveCoeffG, 8) * _factor;
-
-    wavelet_transfer_2d(8, 8, &mBlockData.pixelColorB.front(), 3, 1);
-    float *_diagWaveCoeffB = getDiagDetail(&mBlockData.pixelColorB.front(), 8);
-    float _noiseB = Median(_diagWaveCoeffB, 8) * _factor;
+    WaveletSampling(8, 8, &mBlockData.pixelColorB.front());
+    float *diagB = DiagDetail(&mBlockData.pixelColorB.front());
+    float noiseB = Median(diagB)*1.4825796f;
 	
-	delete _diagWaveCoeffR;
-	delete _diagWaveCoeffG;
-	delete _diagWaveCoeffB;
+	delete diagR;
+	delete diagG;
+	delete diagB;
     
-	return (powf(_noiseR,2) + powf(_noiseG,2) + powf(_noiseB,2))/3;
+	return (powf(noiseR,2) + powf(noiseG,2) + powf(noiseB,2))/3;
 
 }
 
-float AMLD::Median(float *x_data, int x_blkSize)
+float AMLD::Median(float *x_data)
 {
-	int _size = x_blkSize * x_blkSize * .25;
+	int _size = 16;
 	for (int i = 0; i < _size; i++)
 	{
 		x_data[i] = fabs(x_data[i]);
 	}
 	std::sort (x_data, x_data+_size);
-	return (fabs(x_data[int(_size*.5)])+fabs(x_data[int(_size*.5)-1]))/2;
-}
-
-std::vector<float> AMLD::Dilation(std::vector<float> x_input, int x_w, int x_h)
-{
-	std::vector<float> _output(x_h*x_w);
-	for (int yy = 0; yy<x_h; yy++)
-		for(int xx = 0; xx<x_w; xx++)
-		{
-			// compare the N8 neighbors
-			int pind = yy*x_w+xx;
-			_output[pind] = x_input[pind]; //important
-			int ImaxInd = pind;
-			float Imax = x_input[ImaxInd];
-			int nind;			  
-			// left-up
-			nind = std::max(0,yy-1) * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// middle-up
-			nind = std::max(0,yy-1) * x_w + xx;
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-up
-			nind = std::max(0,yy-1) * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-middle
-			nind = yy * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// middle-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + xx;
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// left-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// left-middle
-			nind = yy * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-
-			// replace with Imax
-			if(Imax>x_input[pind])
-				_output[pind] = Imax;			  
-		}
-	return _output;	
+	return fabs(x_data[int(_size*.5)]);
 }
 
 void AMLD::AdaptivelySample(int itr) {
@@ -257,7 +187,7 @@ void AMLD::AdaptivelySample(int itr) {
 			_t = ii*mBlockSize;
 			_b = std::min(mHeight,(ii+1)*mBlockSize-1);
 
-			int _newSamp = ((mImportanceMap[blkIdx]/allImpo)*samplesForThis+.5f)/((_r-_l+1)*(_b-_t+1));
+			int _newSamp = ceil(((mImportanceMap[blkIdx]/allImpo)*samplesForThis+.5f)/((_r-_l+1)*(_b-_t+1)));
 			allImpo -= mImportanceMap[blkIdx]; // clever trick in author's code to handle the issue when not all samples can be used as we have hit the max spp for a any pixel!!!
 
 			for (int pii=_t;pii<=_b;++pii) {
