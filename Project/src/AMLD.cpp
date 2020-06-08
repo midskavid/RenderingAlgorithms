@@ -71,7 +71,7 @@ void AMLD::CreateImportanceMap(int iteration) {
             mImportanceMap[ii*mImportanceMapWidth+jj] = GenerateImportanceMap();
         }
     }
-	mImportanceMap = Dilation(mImportanceMap, mImportanceMapWidth, mImportanceMapHeight);
+	Dilation(mImportanceMap, mImportanceMapWidth, mImportanceMapHeight);
     // get extra samples to be added..
     mAddSamples = std::vector<int> (mWidth*mHeight,0);
     AdaptivelySample(iteration);
@@ -214,9 +214,30 @@ int AMLD::GetSPPForPixel(int pixel) {
 	return mAddSamples[pixel];
 }
 
-std::vector<float> AMLD::Dilation(std::vector<float> x_input, int x_w, int x_h)
+void AMLD::Dilation(std::vector<float>& impMap, int W, int H)
 {
+#if 0
+	std::vector<float> dilatedImpMap(W*H, 0);
+	for (int ii=0; ii<H; ++ii) {
+		for(int jj=0; jj<W; ++jj) {
+			auto idx = ii*W+jj;
+			for (auto kk:{-1,0,1}) {
+				for (auto ll:{-1,0,1}) {
+					if (ii+kk>=0&&ii+kk<=H&&jj+ll>=0&&jj+ll<=W) {
+						auto currIdx = (ii+kk)*W+jj+ll;
+						dilatedImpMap[idx] = std::max(impMap[currIdx], dilatedImpMap[idx]);
+					}
+				}
+			}
+		}
+	}
+	impMap.assign(dilatedImpMap.begin(), dilatedImpMap.end());
+#else
+	auto x_h = H;
+	auto x_w = W;
+	std::vector<float>& x_input = impMap;
 	std::vector<float> _output(x_h*x_w);
+
 	for (int yy = 0; yy<x_h; yy++)
 		for(int xx = 0; xx<x_w; xx++)
 		{
@@ -263,5 +284,7 @@ std::vector<float> AMLD::Dilation(std::vector<float> x_input, int x_w, int x_h)
 			if(Imax>x_input[pind])
 				_output[pind] = Imax;			  
 		}
-	return _output;	
+	impMap.assign(_output.begin(), _output.end());
+#endif
+	
 }

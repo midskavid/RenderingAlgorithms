@@ -26,7 +26,7 @@ private:
     float NoiseEstimation();
     float Median(std::vector<float>& diagC);
     void AdaptivelySample(int itr);
-    std::vector<float> Dilation(std::vector<float> x_input, int x_w, int x_h);
+    void Dilation(std::vector<float>& x_input, int x_w, int x_h);
 
 public:
     std::vector<glm::vec3>* mPixelColor;
