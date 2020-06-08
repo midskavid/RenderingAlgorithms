@@ -216,15 +216,16 @@ int AMLD::GetSPPForPixel(int pixel) {
 
 void AMLD::Dilation(std::vector<float>& impMap, int W, int H)
 {
-#if 0
 	std::vector<float> dilatedImpMap(W*H, 0);
 	for (int ii=0; ii<H; ++ii) {
 		for(int jj=0; jj<W; ++jj) {
 			auto idx = ii*W+jj;
 			for (auto kk:{-1,0,1}) {
 				for (auto ll:{-1,0,1}) {
-					if (ii+kk>=0&&ii+kk<=H&&jj+ll>=0&&jj+ll<=W) {
-						auto currIdx = (ii+kk)*W+jj+ll;
+					auto y = ii+kk;
+					auto x = jj+ll;
+					if (y>=0&&y<H&&x>=0&&x<W) {
+						auto currIdx = y*W+x;
 						dilatedImpMap[idx] = std::max(impMap[currIdx], dilatedImpMap[idx]);
 					}
 				}
@@ -232,59 +233,4 @@ void AMLD::Dilation(std::vector<float>& impMap, int W, int H)
 		}
 	}
 	impMap.assign(dilatedImpMap.begin(), dilatedImpMap.end());
-#else
-	auto x_h = H;
-	auto x_w = W;
-	std::vector<float>& x_input = impMap;
-	std::vector<float> _output(x_h*x_w);
-
-	for (int yy = 0; yy<x_h; yy++)
-		for(int xx = 0; xx<x_w; xx++)
-		{
-			// compare the N8 neighbors
-			int pind = yy*x_w+xx;
-			_output[pind] = x_input[pind]; //important
-			int ImaxInd = pind;
-			float Imax = x_input[ImaxInd];
-			int nind;			  
-			// left-up
-			nind = std::max(0,yy-1) * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// middle-up
-			nind = std::max(0,yy-1) * x_w + xx;
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-up
-			nind = std::max(0,yy-1) * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-middle
-			nind = yy * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// right-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + std::min(x_w-1,xx+1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// middle-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + xx;
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// left-bottom
-			nind = std::min(x_h-1,yy+1) * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-			// left-middle
-			nind = yy * x_w + std::max(0,xx-1);
-			if(x_input[nind]>Imax)
-				Imax = x_input[nind];
-
-			// replace with Imax
-			if(Imax>x_input[pind])
-				_output[pind] = Imax;			  
-		}
-	impMap.assign(_output.begin(), _output.end());
-#endif
-	
 }
